@@ -1,11 +1,12 @@
 'use client';
 import { useEffect, useMemo, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import { saveEvent, clashes, savePreset, deletePreset } from '@/app/actions';
+import { saveEvent, clashes, savePreset, deletePreset, deleteEvent, calendarPayload, setGoogleEventId } from '@/app/actions';
+import { warmUp, getToken, pushEvent } from '@/lib/gcal';
 
 const VENDOR_TYPES = ['התקנת מסך לד', 'הקמת במה', 'טראסים ותלייה', 'השכרת ציוד הגברה', 'השכרת ציוד תאורה', 'גנרטור וחשמלאי', 'צלם / וידאו', 'DJ חיצוני', 'טכנאי נוסף', 'סבלים', 'הובלה / משאית', 'פירוטכניקה', 'אחר'];
 
-export default function EventForm({ initial, members, inventory, presets: initialPresets = [], isAdmin }) {
+export default function EventForm({ initial, members, inventory, presets: initialPresets = [], isAdmin, myEmail }) {
   const router = useRouter();
   const [f, setF] = useState(() => ({
     id: initial?.id, title: initial?.title || '', event_date: initial?.event_date || '', setup_time: initial?.setup_time?.slice(0, 5) || '',
@@ -58,17 +59,45 @@ export default function EventForm({ initial, members, inventory, presets: initia
   const bump = (id, d, max) => setQty((q) => ({ ...q, [id]: Math.max(0, Math.min(max ?? 999, (q[id] || 0) + d)) }));
   const vset = (i, k, v) => setVendors((vs) => vs.map((x, j) => (j === i ? { ...x, [k]: v } : x)));
 
+  useEffect(() => { warmUp(); }, []);
+
+  // Push to Google Calendar. Never blocks or undoes the save itself.
+  const syncCalendar = async (tokenPromise, id) => {
+    try {
+      const [token, payload] = await Promise.all([tokenPromise, calendarPayload(id)]);
+      if (!token || !payload) return false;
+      const res = await pushEvent(token, payload);
+      if (res.error) return false;
+      if (res.id !== payload.google_event_id) await setGoogleEventId(id, res.id);
+      return true;
+    } catch { return false; }
+  };
+
   const submit = (e) => {
     e.preventDefault();
     setError('');
+    const tokenPromise = getToken(myEmail); // asked right on the tap, so the Google window isn't blocked
     start(async () => {
       const res = await saveEvent({
         ...f, crew: [...crew],
         equipment: Object.entries(qty).map(([id, quantity]) => ({ id, quantity })),
         vendors,
       });
+      if (res?.error && !res.id) return setError(res.error);
+      const synced = await syncCalendar(tokenPromise, res.id);
+      router.push(`/events/${res.id}?cal=${synced ? 1 : 0}`);
+      router.refresh();
+    });
+  };
+
+  const cancelEvent = () => {
+    if (!f.id) return;
+    const tokenPromise = getToken(myEmail);
+    start(async () => {
+      const res = await deleteEvent(f.id);
       if (res?.error) return setError(res.error);
-      router.push(`/events/${res.id}`);
+      await syncCalendar(tokenPromise, f.id);
+      router.push('/events');
       router.refresh();
     });
   };
@@ -197,6 +226,7 @@ export default function EventForm({ initial, members, inventory, presets: initia
       )}
 
       {error && <p className="warn" role="alert">{error}</p>}
+      {f.id && <button type="button" className="btn ghost" disabled={saving} onClick={cancelEvent} style={{ width: '100%', color: 'var(--red-text)' }}>בטל את האירוע</button>}
       <div style={{ height: 70 }} />
       <div className="sticky-bottom glass">
         <button className="btn full" disabled={saving}>{saving ? 'שומר…' : f.id ? 'שמור שינויים' : 'שמור ושלח לצוות'}</button>

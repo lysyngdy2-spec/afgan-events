@@ -72,10 +72,48 @@ export async function saveEvent(data) {
 
 export async function deleteEvent(id) {
   const { supabase, canEdit } = await getMe();
-  if (!canEdit) return;
-  await supabase.from('events').update({ status: 'cancelled' }).eq('id', id);
+  if (!canEdit) return { error: 'אין הרשאה' };
+  const { error } = await supabase.from('events').update({ status: 'cancelled', updated_at: new Date().toISOString() }).eq('id', id);
   revalidatePath('/');
-  redirect('/events');
+  revalidatePath('/events');
+  return error ? { error: error.message } : { ok: true };
+}
+
+// What the browser needs to write this event into Google Calendar. No money.
+export async function calendarPayload(id) {
+  const { supabase, canEdit, profile } = await getMe();
+  if (!canEdit) return null;
+  const { data: e } = await supabase.from('events')
+    .select('id, title, event_date, setup_time, start_time, end_time, location, notes, status, google_event_id, event_staff(status, profiles(email, name))')
+    .eq('id', id).maybeSingle();
+  if (!e) return null;
+  const crew = (e.event_staff || []).filter((s) => s.status !== 'declined' && s.profiles);
+  const from = (e.setup_time || e.start_time).slice(0, 5);
+  const to = e.end_time.slice(0, 5);
+  let endDate = e.event_date;
+  if (to <= e.start_time.slice(0, 5)) {
+    const d = new Date(e.event_date + 'T12:00:00Z'); d.setUTCDate(d.getUTCDate() + 1);
+    endDate = d.toISOString().slice(0, 10);
+  }
+  const url = `https://afgan-sl.vercel.app/events/${e.id}`;
+  return {
+    google_event_id: e.google_event_id, title: e.title, location: e.location, url,
+    start: `${e.event_date}T${from}:00`, end: `${endDate}T${to}:00`,
+    cancelled: e.status === 'cancelled',
+    attendees: crew.map((s) => s.profiles.email).filter((m) => m !== profile.email),
+    description: [
+      e.setup_time ? `הקמה ${from}, אירוע ${e.start_time.slice(0, 5)} עד ${to}` : null,
+      crew.length ? `צוות: ${crew.map((s) => s.profiles.name).join(', ')}` : null,
+      e.notes || null,
+      `כל הפרטים והמפרט: ${url}`,
+    ].filter(Boolean).join('\n'),
+  };
+}
+
+export async function setGoogleEventId(id, googleId) {
+  const { supabase, canEdit } = await getMe();
+  if (!canEdit) return;
+  await supabase.from('events').update({ google_event_id: googleId ? String(googleId).slice(0, 200) : null }).eq('id', id);
 }
 
 export async function clashes(p) {

@@ -18,7 +18,7 @@ export default async function NewEvent({ searchParams }) {
         <h1 className="display" style={{ fontSize: 22 }}>{from ? 'שכפול אירוע' : 'אירוע חדש'}</h1>
         <Link href="/events?past=1" className="small">שכפל אירוע</Link>
       </div>
-      <EventForm {...data} isAdmin={me.isAdmin} />
+      <EventForm {...data} isAdmin={me.isAdmin} myEmail={me.profile.email} />
     </main>
   );
 }

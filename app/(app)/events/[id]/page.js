@@ -6,8 +6,9 @@ import { hm, shekel, dayName, shortDate, daysUntil, wazeUrl } from '@/lib/format
 
 export const dynamic = 'force-dynamic';
 
-export default async function EventPage({ params }) {
+export default async function EventPage({ params, searchParams }) {
   const { id } = await params;
+  const cal = (await searchParams).cal;
   const me = await getMe();
   const { data: e } = await me.supabase.from('events')
     .select('*, event_staff(user_id, status, profiles(name, phone)), event_equipment(quantity, equipment(name, category))')
@@ -23,6 +24,8 @@ export default async function EventPage({ params }) {
   return (
     <>
       <main className="page">
+        {cal === '1' && <p className="glass pop" role="status" style={{ padding: '12px 16px', borderRadius: 16, color: 'var(--green)' }}>✓ נשמר ונשלח ליומן גוגל של הצוות</p>}
+        {cal === '0' && <p className="glass pop" role="status" style={{ padding: '12px 16px', borderRadius: 16, color: 'var(--amber)' }}>נשמר. ליומן גוגל זה לא נשלח כי לא אושרה הגישה ליומן. בשמירה הבאה אפשר לאשר.</p>}
         <div className="row">
           <Link href="/events" className="small">→ כל האירועים</Link>
           {me.canEdit && <Link href={`/events/${id}/edit`} className="btn ghost" style={{ height: 44 }}>עריכה</Link>}
