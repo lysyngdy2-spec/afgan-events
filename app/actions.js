@@ -89,6 +89,27 @@ export async function clashes(p) {
   return { staff: staff || [], booked: booked || [] };
 }
 
+// Saved specs ("decks")
+export async function savePreset(name, items) {
+  const { supabase, user, canEdit } = await getMe();
+  if (!canEdit) return { error: 'אין הרשאה' };
+  name = String(name || '').trim().slice(0, 60);
+  const clean = (items || []).filter((x) => x.quantity > 0).map((x) => ({ equipment_id: x.equipment_id, quantity: Number(x.quantity) }));
+  if (!name) return { error: 'צריך שם למפרט' };
+  if (!clean.length) return { error: 'המפרט ריק. הוסף ציוד קודם.' };
+  const { data, error } = await supabase.from('spec_presets')
+    .upsert({ name, items: clean, created_by: user.id, updated_at: new Date().toISOString() }, { onConflict: 'name' })
+    .select('id, name, items').single();
+  return error ? { error: error.message } : { preset: data };
+}
+
+export async function deletePreset(id) {
+  const { supabase, canEdit } = await getMe();
+  if (!canEdit) return { error: 'אין הרשאה' };
+  const { error } = await supabase.from('spec_presets').delete().eq('id', id);
+  return error ? { error: error.message } : { ok: true };
+}
+
 // Team
 export async function saveMember(form) {
   const { supabase } = await requireAdmin();
