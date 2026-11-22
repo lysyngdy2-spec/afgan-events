@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import Nav from '@/components/Nav';
 import { requireAdmin } from '@/lib/session';
 import { moneySummary, monthRange } from '@/lib/data';
 import { addExpense, setPayment } from '@/app/actions';
@@ -78,7 +77,6 @@ export default async function Money({ searchParams }) {
           </form>
         </section>
       </main>
-      <Nav active="money" isAdmin canEdit />
     </>
   );
 }

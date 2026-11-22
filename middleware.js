@@ -13,7 +13,8 @@ export async function middleware(request) {
       },
     },
   });
-  const { data: { user } } = await supabase.auth.getUser();
+  const { data } = await supabase.auth.getClaims();
+  const user = data?.claims?.sub;
   const open = ['/login', '/auth', '/privacy'].some((p) => request.nextUrl.pathname.startsWith(p));
   if (!user && !open) return NextResponse.redirect(new URL('/login', request.url));
   return response;

@@ -1,4 +1,3 @@
-import Nav from '@/components/Nav';
 import InventoryPicker from '@/components/InventoryPicker';
 import { requireAdmin } from '@/lib/session';
 import catalog from '@/lib/catalog.json';
@@ -17,7 +16,6 @@ export default async function Inventory() {
         </div>
         <InventoryPicker catalog={catalog} owned={owned || []} />
       </main>
-      <Nav active="inventory" isAdmin canEdit />
     </>
   );
 }

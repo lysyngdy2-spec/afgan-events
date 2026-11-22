@@ -1,6 +1,5 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import Nav from '@/components/Nav';
 import AnswerButtons from '@/components/AnswerButtons';
 import { getMe } from '@/lib/session';
 import { hm, shekel, dayName, shortDate, daysUntil, wazeUrl } from '@/lib/format';
@@ -99,7 +98,6 @@ export default async function EventPage({ params }) {
           </section>
         )}
       </main>
-      <Nav active="events" isAdmin={me.isAdmin} canEdit={me.canEdit} />
     </>
   );
 }

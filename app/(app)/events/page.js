@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import Nav from '@/components/Nav';
 import { getMe } from '@/lib/session';
 import { hm, shortDate, dayName, today } from '@/lib/format';
 
@@ -51,7 +50,6 @@ export default async function Events({ searchParams }) {
           </section>
         ))}
       </main>
-      <Nav active="events" isAdmin={me.isAdmin} canEdit={me.canEdit} />
     </>
   );
 }

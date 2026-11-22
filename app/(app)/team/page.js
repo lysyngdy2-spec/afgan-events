@@ -1,4 +1,3 @@
-import Nav from '@/components/Nav';
 import { requireAdmin } from '@/lib/session';
 import { saveMember, setMemberActive } from '@/app/actions';
 import { shekel } from '@/lib/format';
@@ -43,7 +42,6 @@ export default async function Team() {
           <MemberForm />
         </section>
       </main>
-      <Nav active="team" isAdmin canEdit />
     </>
   );
 }

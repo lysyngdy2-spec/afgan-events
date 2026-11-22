@@ -10,6 +10,7 @@ export default function InventoryPicker({ catalog, owned }) {
   const [custom, setCustom] = useState('');
   const [saving, start] = useTransition();
   const [saved, setSaved] = useState('');
+  const [err, setErr] = useState('');
 
   const ownedIn = (name) => owned.filter((o) => o.category === name);
   const cat = catalog.categories.find((c) => c.id === catId);
@@ -21,19 +22,20 @@ export default function InventoryPicker({ catalog, owned }) {
   }, [catId]); // eslint-disable-line
 
   const open = (c) => {
-    setCatId(c.id); setQ(''); setSaved('');
+    setCatId(c.id); setQ(''); setSaved(''); setErr('');
     setCounts(Object.fromEntries(ownedIn(c.name).map((o) => [o.name, o.quantity])));
   };
   const bump = (name, d) => setCounts((s) => ({ ...s, [name]: Math.max(0, (s[name] || 0) + d) }));
   const save = () => start(async () => {
     const touched = new Set([...Object.keys(counts), ...ownedIn(cat.name).map((o) => o.name)]);
-    await saveInventory(cat.name, [...touched].map((name) => ({ name, quantity: counts[name] || 0 })));
+    const res = await saveInventory(cat.name, [...touched].map((name) => ({ name, quantity: counts[name] || 0 })));
+    if (res?.error) return setErr(res.error);
     setSaved(cat.name); setCatId(null);
   });
 
   if (!cat) return (
     <>
-      {saved && <p className="small" style={{ color: 'var(--green)' }} role="status">נשמר: {saved}</p>}
+      {saved && <p className="glass pop" style={{ color: 'var(--green)', padding: '12px 16px', borderRadius: 16 }} role="status">✓ נשמר: {saved}</p>}
       <div className="grid2">
         {catalog.categories.map((c) => {
           const mine = ownedIn(c.name);
@@ -70,6 +72,7 @@ export default function InventoryPicker({ catalog, owned }) {
         <input value={custom} onChange={(e) => setCustom(e.target.value)} placeholder="לא מצאת? כתוב דגם" aria-label="דגם חדש" />
         <button className="btn ghost" onClick={() => { if (custom.trim()) { bump(custom.trim(), 1); items.unshift({ name: custom.trim(), group: 'שלך' }); setCustom(''); } }}>הוסף</button>
       </div>
+      {err && <p className="warn small" role="alert">לא נשמר: {err}</p>}
       <button className="btn full" disabled={saving} onClick={save}>{saving ? 'שומר…' : `שמור · ${Object.values(counts).reduce((t, n) => t + n, 0)} יח׳`}</button>
     </div>
   );

@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import Nav from '@/components/Nav';
 import AnswerButtons from '@/components/AnswerButtons';
 import { getMe } from '@/lib/session';
 import { upcomingEvents, moneySummary, monthRange } from '@/lib/data';
@@ -74,6 +73,11 @@ export default async function Home() {
           <a className="btn" href={wazeUrl(next.location)} target="_blank" rel="noreferrer">נווט בוויז ל{next.location}</a>
         )}
 
+        <Link href="/me" className="glass tap row" style={{ padding: '14px 16px', borderRadius: 20, color: 'var(--text)' }}>
+          <span><b style={{ fontWeight: 500 }}>האירועים ביומן הטלפון</b><br /><span className="small muted">חיבור חד פעמי לגוגל או אפל קלנדר</span></span>
+          <span style={{ color: 'var(--amber)', fontWeight: 500 }}>חבר</span>
+        </Link>
+
         {pendingMine.map((e) => (
           <div key={e.id} className="glass card">
             <p className="small" style={{ color: 'var(--amber)', fontWeight: 500 }}>שיבוץ חדש</p>
@@ -127,7 +131,6 @@ export default async function Home() {
           </section>
         )}
       </main>
-      <Nav active="home" isAdmin={me.isAdmin} canEdit={me.canEdit} />
     </>
   );
 }

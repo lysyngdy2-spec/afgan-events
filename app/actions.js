@@ -35,19 +35,23 @@ export async function saveEvent(data) {
     id = ins.id;
   }
 
-  // Crew: keep answers of people who stay, add new as pending.
-  const { data: oldCrew } = await supabase.from('event_staff').select('user_id').eq('event_id', id);
+  // Crew: keep answers of people who stay, add new as pending. Equipment: replace.
+  const [{ data: oldCrew }] = await Promise.all([
+    supabase.from('event_staff').select('user_id').eq('event_id', id),
+    supabase.from('event_equipment').delete().eq('event_id', id),
+  ]);
   const keep = new Set(data.crew || []);
   const gone = (oldCrew || []).map((c) => c.user_id).filter((u) => !keep.has(u));
-  if (gone.length) await supabase.from('event_staff').delete().eq('event_id', id).in('user_id', gone);
   const had = new Set((oldCrew || []).map((c) => c.user_id));
   const added = [...keep].filter((u) => !had.has(u)).map((u) => ({ event_id: id, user_id: u }));
-  if (added.length) await supabase.from('event_staff').insert(added);
-
-  // Equipment: replace.
-  await supabase.from('event_equipment').delete().eq('event_id', id);
   const eq = (data.equipment || []).filter((x) => x.quantity > 0).map((x) => ({ event_id: id, equipment_id: x.id, quantity: x.quantity }));
-  if (eq.length) await supabase.from('event_equipment').insert(eq);
+  const results = await Promise.all([
+    gone.length ? supabase.from('event_staff').delete().eq('event_id', id).in('user_id', gone) : {},
+    added.length ? supabase.from('event_staff').insert(added) : {},
+    eq.length ? supabase.from('event_equipment').insert(eq) : {},
+  ]);
+  const failed = results.find((r) => r.error);
+  if (failed) return { error: 'האירוע נשמר, אבל הצוות או הציוד לא: ' + failed.error.message, id };
 
   if (isAdmin) {
     await supabase.from('event_finance').upsert({
@@ -109,11 +113,15 @@ export async function setMemberActive(email, active) {
 // Inventory
 export async function saveInventory(category, items) {
   const { supabase } = await requireAdmin();
-  for (const it of items) {
-    if (it.quantity > 0) await supabase.from('equipment').upsert({ category, name: it.name, quantity: it.quantity }, { onConflict: 'category,name' });
-    else await supabase.from('equipment').delete().eq('category', category).eq('name', it.name);
-  }
+  const keep = items.filter((it) => it.quantity > 0).map((it) => ({ category, name: it.name, quantity: it.quantity }));
+  const drop = items.filter((it) => !(it.quantity > 0)).map((it) => it.name);
+  const [a, b] = await Promise.all([
+    keep.length ? supabase.from('equipment').upsert(keep, { onConflict: 'category,name' }) : {},
+    drop.length ? supabase.from('equipment').delete().eq('category', category).in('name', drop) : {},
+  ]);
   revalidatePath('/inventory');
+  const error = a.error || b.error;
+  return error ? { error: error.code === '23503' ? 'אי אפשר להסיר ציוד שמשובץ לאירוע' : error.message } : { ok: true };
 }
 
 // Money

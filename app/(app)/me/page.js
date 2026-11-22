@@ -1,4 +1,3 @@
-import Nav from '@/components/Nav';
 import { getMe } from '@/lib/session';
 import { revalidatePath } from 'next/cache';
 import CalendarLinks from '@/components/CalendarLinks';
@@ -35,8 +34,9 @@ export default async function Me() {
           <button className="btn">שמור</button>
         </form>
         <section className="glass card">
-          <h2 style={{ fontSize: 16 }}>האירועים שלי ביומן</h2>
-          <p className="small muted">לוחצים פעם אחת, ומאז כל אירוע שמשבצים אותך אליו נכנס ליומן לבד, ומתעדכן אם משהו משתנה או מתבטל. באייפון זה מתעדכן כל שעה בערך, בגוגל לפעמים לוקח כמה שעות.</p>
+          <h2 style={{ fontSize: 18 }}>חיבור ליומן של הטלפון</h2>
+          <p className="small muted">עושים את זה פעם אחת. מאז כל אירוע שמשבצים אותך אליו נכנס ליומן לבד, עם תזכורת שבוע לפני, יום לפני ו־3 שעות לפני. שינוי או ביטול מתעדכנים לבד.</p>
+          <p className="small muted"><b style={{ color: 'var(--text)' }}>אייפון:</b> לוחצים על הכפתור הראשון ואז "הרשמה". <b style={{ color: 'var(--text)' }}>אנדרואיד:</b> לוחצים על השני, מאשרים בגוגל קלנדר. אם זה לא נפתח, מעתיקים את הקישור ומדביקים בגוגל קלנדר במחשב תחת "יומנים אחרים", "מכתובת אתר".</p>
           {token ? <CalendarLinks token={token} /> : null}
           <form action={rotateToken}>
             <button className="btn ghost" style={{ width: '100%', fontSize: 13 }}>הקישור דלף? צור קישור חדש</button>
@@ -44,7 +44,6 @@ export default async function Me() {
         </section>
         <form action="/auth/signout" method="post"><button className="btn ghost" style={{ width: '100%' }}>התנתקות</button></form>
       </main>
-      <Nav active="me" isAdmin={me.isAdmin} canEdit={me.canEdit} />
     </>
   );
 }
