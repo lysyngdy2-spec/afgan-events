@@ -1,0 +1,35 @@
+import Nav from '@/components/Nav';
+import { getMe } from '@/lib/session';
+import { revalidatePath } from 'next/cache';
+
+export const dynamic = 'force-dynamic';
+
+async function savePhone(form) {
+  'use server';
+  const { supabase, user } = await getMe();
+  await supabase.from('profiles').update({ phone: String(form.get('phone') || '').trim() || null }).eq('id', user.id);
+  revalidatePath('/me');
+}
+
+export default async function Me() {
+  const me = await getMe();
+  const { data: p } = await me.supabase.from('profiles').select('name, email, phone').eq('id', me.user.id).single();
+  return (
+    <>
+      <main className="page">
+        <h1 className="display" style={{ fontSize: 30 }}>{p.name}</h1>
+        <p className="muted" dir="ltr" style={{ textAlign: 'end' }}>{p.email}</p>
+        <form action={savePhone} className="glass card">
+          <label>טלפון (כדי שהצוות יוכל להתקשר אליך)<input name="phone" type="tel" dir="ltr" defaultValue={p.phone || ''} /></label>
+          <button className="btn">שמור</button>
+        </form>
+        <section className="glass card">
+          <h2 style={{ fontSize: 16 }}>יומן ותזכורות</h2>
+          <p className="small muted">חיבור לגוגל קלנדר ולאפל קלנדר, ותזכורות שבוע לפני, יום לפני וביום האירוע. נפתח בשלב הבא.</p>
+        </section>
+        <form action="/auth/signout" method="post"><button className="btn ghost" style={{ width: '100%' }}>התנתקות</button></form>
+      </main>
+      <Nav active="me" isAdmin={me.isAdmin} canEdit={me.canEdit} />
+    </>
+  );
+}

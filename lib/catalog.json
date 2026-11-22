@@ -1,0 +1,82 @@
+{
+  "version": 1,
+  "updated": "2026-11-22",
+  "note": "מאגר התחלתי לסטאפ של ניר. דגמים נפוצים בשוק ההגברה והתאורה, מבוסס ידע כללי, לא מחירון. ניר מסמן מה יש לו וכמה, ויכול להוסיף דגם חופשי בכל קטגוריה.",
+  "categories": [
+    {
+      "id": "mixers", "name": "מיקסרים ושולחנות",
+      "groups": [
+        {"name": "דיגיטליים", "items": [
+          "Behringer WING", "Behringer WING Rack", "Behringer WING Compact", "Behringer X32", "Behringer X32 Compact", "Behringer X32 Producer", "Behringer X32 Rack", "Midas M32", "Midas M32R", "Midas HD96-24",
+          "Allen & Heath SQ-5", "Allen & Heath SQ-6", "Allen & Heath SQ-7", "Allen & Heath Avantis", "Allen & Heath dLive C1500", "Allen & Heath CQ-18T", "Allen & Heath Qu-16", "Allen & Heath Qu-SB",
+          "Yamaha TF1", "Yamaha TF3", "Yamaha TF5", "Yamaha DM3", "Yamaha DM7", "Yamaha QL1", "Yamaha CL5",
+          "Soundcraft Si Impact", "Soundcraft Ui24R", "Soundcraft Vi1000", "DiGiCo SD12", "DiGiCo S21", "PreSonus StudioLive 32SE"]},
+        {"name": "אנלוגיים קטנים", "items": ["Yamaha MG10XU", "Yamaha MG16XU", "Allen & Heath ZEDi-10", "Mackie ProFX12v3", "Soundcraft Signature 12", "Behringer Xenyx X1222USB"]},
+        {"name": "סטייג׳ בוקס ורשת", "items": ["Behringer S16", "Behringer S32", "Behringer SD8", "Behringer SD16", "Midas DL16", "Midas DL32", "Allen & Heath AR2412", "Allen & Heath DX168", "Yamaha Rio1608-D2", "Yamaha Tio1608-D", "כבל רשת CAT6 / CAT7 (מטרים)"]},
+        {"name": "DJ", "items": ["Pioneer DJ DJM-900NXS2", "Pioneer DJ DJM-A9", "Pioneer DJ DJM-750MK2", "Pioneer DJ CDJ-3000", "Pioneer DJ CDJ-2000NXS2", "Pioneer DJ XDJ-XZ", "Pioneer DJ XDJ-RX3", "Pioneer DJ DDJ-1000", "Denon DJ SC6000", "Denon DJ Prime 4+", "Allen & Heath Xone:96", "עמדת DJ / פסדה"]}
+      ]
+    },
+    {
+      "id": "speakers", "name": "רמקולים ומערכות",
+      "groups": [
+        {"name": "ראשיים אקטיביים", "items": ["QSC K10.2", "QSC K12.2", "QSC K8.2", "QSC CP12", "RCF ART 712-A MK5", "RCF ART 715-A MK5", "RCF ART 745-A MK5", "RCF NX 32-A", "RCF NX 45-A", "Electro-Voice ELX200-12P", "Electro-Voice EKX-12P", "Electro-Voice ETX-12P", "JBL EON712", "JBL EON715", "JBL PRX912", "JBL PRX915", "Yamaha DXR12mkII", "Yamaha DZR12", "Mackie Thump212", "dB Technologies Opera 12", "FBT X-Lite 12A", "Turbosound iQ12", "Bose F1 Model 812"]},
+        {"name": "ליין אריי", "items": ["RCF HDL 6-A", "RCF HDL 30-A", "RCF HDL 50-A", "dB Technologies VIO L210", "dB Technologies VIO L1610", "JBL SRX906LA", "JBL VTX A8", "L-Acoustics Kara II", "L-Acoustics K2", "d&b audiotechnik Y8", "d&b audiotechnik V8", "Martin Audio WPC", "Nexo GEO M6", "Electro-Voice X1-212/90", "Meyer Sound LINA", "Adamson CS7p"]},
+        {"name": "קולונות ומערכות ניידות", "items": ["Bose L1 Pro16", "Bose L1 Pro32", "Electro-Voice EVOLVE 50M", "Electro-Voice EVOLVE 30M", "JBL PRX ONE", "RCF EVOX J8", "LD Systems MAUI 28 G3", "HK Audio Polar 10"]},
+        {"name": "פסיביים ומגברים", "items": ["רמקול פסיבי (דגם חופשי)", "Crown XTi 4002", "Crown XLS 2502", "Powersoft X4", "Powersoft Quattrocanali 4804", "Lab.gruppen PLM 20K44", "QSC PLD4.5", "Camco Vortex 6", "מעבד DSP (דגם חופשי)"]}
+      ]
+    },
+    {
+      "id": "subs", "name": "סאבים",
+      "items": ["QSC KS118", "QSC KS212C", "QSC KW181", "RCF SUB 8006-AS", "RCF SUB 9007-AS", "RCF SUB 708-AS II", "RCF SUB 905-AS II", "Electro-Voice EKX-18SP", "Electro-Voice ETX-18SP", "Electro-Voice ELX200-18SP", "JBL SRX828SP", "JBL PRX918XLF", "JBL EON718S", "Yamaha DXS18XLF", "Yamaha DXS15mkII", "dB Technologies SUB 618", "dB Technologies SUB 918", "L-Acoustics KS28", "L-Acoustics SB18", "d&b audiotechnik SL-SUB", "d&b audiotechnik V-SUB", "Martin Audio SXP218", "Turbosound iP15B", "Mackie Thump118S"]
+    },
+    {
+      "id": "monitors", "name": "מוניטורים",
+      "items": ["QSC CP12 (מוניטור)", "RCF TT 25-CXA", "RCF NX 12-SMA", "Electro-Voice PXM-12MP", "JBL PRX912 (מוניטור)", "Yamaha DHR12M", "L-Acoustics X15 HiQ", "d&b audiotechnik M4", "מוניטור אוזניות IEM - Shure PSM 300", "Shure PSM 900", "Sennheiser ew IEM G4", "Behringer P16-M"]
+    },
+    {
+      "id": "mics", "name": "מיקרופונים",
+      "groups": [
+        {"name": "אלחוטיים", "items": ["Shure SLX-D24/SM58", "Shure SLX-D24/B87A", "Shure QLX-D24/SM58", "Shure ULX-D24/B58", "Shure Axient AD2", "Shure BLX24/SM58", "Shure GLX-D24+", "Sennheiser EW-D 835-S", "Sennheiser ew 100 G4-835-S", "Sennheiser ew 500 G4", "Sennheiser XSW 2-835", "Audio-Technica System 10", "Mipro ACT-818"]},
+        {"name": "דש ומדונה", "items": ["Shure BLX14/CVL", "Shure SLX-D14/153T", "Sennheiser EW-D ME2", "Sennheiser ME3 מדונה", "DPA 4088 מדונה", "DPA 4060 דש", "Countryman E6"]},
+        {"name": "חוטיים", "items": ["Shure SM58", "Shure Beta 58A", "Shure SM57", "Shure Beta 52A", "Shure Beta 91A", "Shure SM81", "Sennheiser e835", "Sennheiser e945", "Sennheiser e604", "Sennheiser e906", "Audix D6", "Audix i5", "AKG C414", "Shure MX418 גוסנק לפודיום"]},
+        {"name": "סט תופים ובס", "items": ["סט מיקרופונים לתופים (דגם חופשי)", "DI Box Radial ProDI", "DI Box Radial J48", "DI Box Behringer DI400P", "DI סטריאו BSS AR-133"]}
+      ]
+    },
+    {
+      "id": "playback", "name": "מקורות ונגנים",
+      "items": ["מחשב נייד לפלייבק", "כרטיס קול Focusrite Scarlett", "כרטיס קול RME Babyface", "מקלדת Yamaha MODX", "מקלדת Korg Pa5X", "מקלדת Roland FANTOM", "נגן Tascam CD-400U", "ממיר Bluetooth"]
+    },
+    {
+      "id": "lighting", "name": "תאורה",
+      "groups": [
+        {"name": "ראשים נעים", "items": ["Robe MegaPointe", "Robe Spiider", "Robe LEDBeam 150", "Robe T1 Profile", "Clay Paky Sharpy", "Clay Paky Mythos 2", "Clay Paky B-EYE K20", "Martin MAC Aura XB", "Martin MAC Quantum Wash", "Martin MAC Encore", "Chauvet Rogue R2X Beam", "Chauvet Rogue R2 Wash", "Chauvet Maverick Storm 1 Wash", "Elation Proteus Maximus", "ADJ Focus Spot 4Z", "Beam 230 (סיני / גנרי)", "Beam 7R (גנרי)", "Spot 250 LED (גנרי)", "Wash 19x15W Zoom (גנרי)", "Beam Wash 7x40W (גנרי)"]},
+        {"name": "פרים ופאר-לד", "items": ["Chauvet SlimPAR Pro H USB", "Chauvet COLORdash Par-Quad 18", "Chauvet Freedom Par Q9 (אלחוטי סוללה)", "ADJ Element Par (סוללה)", "Astera AX5 TriplePAR (סוללה)", "Astera Titan Tube", "Astera Helios Tube", "PAR LED 18x10W RGBWA+UV (גנרי)", "PAR LED סוללה אלחוטי (גנרי)", "Uplight סוללה לעיצוב אולם (גנרי)"]},
+        {"name": "סטרובים, בליינדרים ולד בר", "items": ["Martin Atomic 3000 LED", "Chauvet Strike Array 4", "GLP JDC1", "Elation Protron Eclypse", "בליינדר 2 עיניים (גנרי)", "בליינדר 4 עיניים (גנרי)", "LED Bar 18x3W (גנרי)", "Pixel Bar (גנרי)", "Chauvet COLORband PiX"]},
+        {"name": "לייזר ואפקטים מיוחדים", "items": ["לייזר RGB 3W", "לייזר RGB 10W", "Kvant Clubmax", "מכונת עשן Antari Z-1200", "מכונת עשן Chauvet Hurricane", "מכונת ערפל (Hazer) Antari HZ-500", "מכונת ערפל MDG theONE", "עשן כבד / ענן נמוך (Low Fog)", "מכונת בועות", "תותח קונפטי", "מכונת זיקוקים קרים (Sparkular)", "CO2 Jet", "מכונת שלג", "כדור מראות + מנוע", "UV Bar"]},
+        {"name": "פרופיל, פולו ותאטרון", "items": ["ETC Source Four LED", "ETC Source Four (הלוגן)", "פרסנל LED", "Followspot Robert Juliat", "Followspot LED (גנרי)", "דימר 6 ערוצים"]},
+        {"name": "שליטה בתאורה", "items": ["grandMA3 compact", "grandMA3 onPC + Command Wing", "ChamSys MagicQ MQ80", "Avolites Tiger Touch II", "Avolites Quartz", "Chamsys QuickQ 20", "Obey 70 / DMX controller (גנרי)", "SoundSwitch", "Lightkey (תוכנה)", "ממשק DMX USB (Enttec)", "משדר DMX אלחוטי (גנרי)", "ספליטר DMX"]}
+      ]
+    },
+    {
+      "id": "led", "name": "מסכי לד ווידאו",
+      "items": ["קיר לד פנים P2.6 (קבינט 50x50)", "קיר לד פנים P2.9 (קבינט 50x50)", "קיר לד פנים P3.9 (קבינט 50x100)", "קיר לד חוץ P3.9", "קיר לד חוץ P4.8", "מסך לד ניידת / טריילר", "בקר מסך Novastar VX1000", "בקר מסך Novastar VX600", "Novastar MCTRL4K", "מעבד וידאו Barco E2 / ImagePRO", "מערבל וידאו Blackmagic ATEM Mini Pro", "Blackmagic ATEM Television Studio", "Resolume Arena (מחשב VJ)", "מקרן Epson 7000 לומן", "מקרן Panasonic 10K", "מסך הקרנה + מסגרת", "טלוויזיה 65 / 75 אינץ׳ על סטנד", "מצלמה למסך (PTZ / וידאו)", "כבלי SDI / HDMI ארוכים"]
+    },
+    {
+      "id": "stage", "name": "במות, טראסים ותלייה",
+      "items": ["במה מודולרית 2x1 מ׳ (פלטה)", "רגליים לבמה (גבהים)", "מדרגות לבמה", "סקירט לבמה", "טראס 30x30 (מטרים)", "טראס 40x40 (מטרים)", "גול פוסט / מסגרת טראס", "קרייז אפ (Crank Up) / ג׳יני", "מנוף שרשרת 1 טון (Chain Hoist)", "סטנד T-Bar לתאורה", "סטנדים לרמקולים", "סטנדים למיקרופונים", "רחבת ריקודים / פלור לד", "חיפוי שחור (Molton)", "רנר / גשר כבלים"]
+    },
+    {
+      "id": "power", "name": "חשמל וכבילה",
+      "items": ["גנרטור (דגם / KVA)", "לוח חשמל נייד", "כבל חשמל פאוורקון", "כבל חשמל תלת פאזי 63A", "כבל חשמל 32A", "מפצל חשמל", "UPS", "כבלי XLR (מטרים)", "כבלי Speakon", "מולטיקור 24/8", "תוף כבל (Snake)", "Gaffer Tape", "קייסים להובלה"]
+    },
+    {
+      "id": "comms", "name": "קשר והפקה",
+      "items": ["אינטרקום Clear-Com", "אינטרקום אלחוטי Hollyland", "מכשירי קשר (ווקי טוקי)", "שעון במה / טיימר", "טלפרומפטר"]
+    }
+  ],
+  "external_services": {
+    "name": "ספקים ועובדים חיצוניים",
+    "note": "ניר שומר אנשי קשר קבועים לכל סוג, ומשבץ אותם לאירוע עם שעת הגעה, עלות ומי משלם (אנחנו / הלקוח). ספק חיצוני מקבל הודעת וואטסאפ עם הפרטים ולא נכנס לאפליקציה.",
+    "types": ["התקנת מסך לד", "הקמת במה", "טראסים ותלייה (ריגר)", "השכרת ציוד הגברה נוסף", "השכרת ציוד תאורה נוסף", "גנרטור וחשמלאי", "צלם / וידאו", "צלם רחפן", "DJ חיצוני", "להקה / נגנים", "זמר / אמן", "טכנאי וידאו / VJ", "טכנאי הגברה נוסף", "מפעיל תאורה", "סבלים", "הובלה / משאית", "אוהלים וסוכות", "גידור", "אבטחה", "קייטרינג לצוות", "פירוטכניקה", "תפאורה ועיצוב"]
+  }
+}
