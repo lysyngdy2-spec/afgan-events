@@ -52,6 +52,7 @@ export async function GET(_req, { params }) {
       `DESCRIPTION:${esc(desc)}`,
       `URL:https://afgan-sl.vercel.app/events/${e.id}`,
       `STATUS:${e.status === 'cancelled' ? 'CANCELLED' : 'CONFIRMED'}`,
+      'BEGIN:VALARM', 'ACTION:DISPLAY', `DESCRIPTION:${esc(e.title)}`, 'TRIGGER:-P7D', 'END:VALARM',
       'BEGIN:VALARM', 'ACTION:DISPLAY', `DESCRIPTION:${esc(e.title)}`, 'TRIGGER:-P1D', 'END:VALARM',
       'BEGIN:VALARM', 'ACTION:DISPLAY', `DESCRIPTION:${esc(e.title)}`, 'TRIGGER:-PT3H', 'END:VALARM',
       'END:VEVENT',
