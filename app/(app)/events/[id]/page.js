@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import CalendarButton from '@/components/CalendarButton';
 import AnswerButtons from '@/components/AnswerButtons';
 import { getMe } from '@/lib/session';
 import { hm, shekel, dayName, shortDate, daysUntil, wazeUrl } from '@/lib/format';
@@ -25,7 +26,8 @@ export default async function EventPage({ params, searchParams }) {
     <>
       <main className="page">
         {cal === '1' && <p className="glass pop" role="status" style={{ padding: '12px 16px', borderRadius: 16, color: 'var(--green)' }}>✓ נשמר ונשלח ליומן גוגל של הצוות</p>}
-        {cal === '0' && <p className="glass pop" role="status" style={{ padding: '12px 16px', borderRadius: 16, color: 'var(--amber)' }}>נשמר. ליומן גוגל זה לא נשלח כי לא אושרה הגישה ליומן. בשמירה הבאה אפשר לאשר.</p>}
+        {cal === '0' && <p className="glass pop" role="status" style={{ padding: '12px 16px', borderRadius: 16, color: 'var(--amber)' }}>נשמר באפליקציה. ליומן גוגל זה לא נשלח. אפשר לנסות שוב בכפתור למטה.</p>}
+        {me.canEdit && e.status !== 'cancelled' && !(cal === '1') && !e.google_event_id && <CalendarButton id={id} email={me.profile.email} />}
         <div className="row">
           <Link href="/events" className="small">→ כל האירועים</Link>
           {me.canEdit && <Link href={`/events/${id}/edit`} className="btn ghost" style={{ height: 44 }}>עריכה</Link>}

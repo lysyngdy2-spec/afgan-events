@@ -2,7 +2,7 @@
 import { useEffect, useMemo, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { saveEvent, clashes, savePreset, deletePreset, deleteEvent, calendarPayload, setGoogleEventId } from '@/app/actions';
-import { warmUp, getToken, pushEvent } from '@/lib/gcal';
+import { cachedToken, goAuthorize, syncEvent } from '@/lib/gcal';
 
 const VENDOR_TYPES = ['התקנת מסך לד', 'הקמת במה', 'טראסים ותלייה', 'השכרת ציוד הגברה', 'השכרת ציוד תאורה', 'גנרטור וחשמלאי', 'צלם / וידאו', 'DJ חיצוני', 'טכנאי נוסף', 'סבלים', 'הובלה / משאית', 'פירוטכניקה', 'אחר'];
 
@@ -59,24 +59,19 @@ export default function EventForm({ initial, members, inventory, presets: initia
   const bump = (id, d, max) => setQty((q) => ({ ...q, [id]: Math.max(0, Math.min(max ?? 999, (q[id] || 0) + d)) }));
   const vset = (i, k, v) => setVendors((vs) => vs.map((x, j) => (j === i ? { ...x, [k]: v } : x)));
 
-  useEffect(() => { warmUp(); }, []);
-
-  // Push to Google Calendar. Never blocks or undoes the save itself.
-  const syncCalendar = async (tokenPromise, id) => {
-    try {
-      const [token, payload] = await Promise.all([tokenPromise, calendarPayload(id)]);
-      if (!token || !payload) return false;
-      const res = await pushEvent(token, payload);
-      if (res.error) return false;
-      if (res.id !== payload.google_event_id) await setGoogleEventId(id, res.id);
-      return true;
-    } catch { return false; }
+  // Save first, always. Then the calendar: straight away if Google access is still
+  // fresh, otherwise a quick trip to Google that lands back on the event.
+  const afterSave = async (id, fallback) => {
+    const token = cachedToken();
+    if (!token) return goAuthorize(myEmail, id);
+    const synced = await syncEvent(token, id, { calendarPayload, setGoogleEventId });
+    router.push(fallback || `/events/${id}?cal=${synced ? 1 : 0}`);
+    router.refresh();
   };
 
   const submit = (e) => {
     e.preventDefault();
     setError('');
-    const tokenPromise = getToken(myEmail); // asked right on the tap, so the Google window isn't blocked
     start(async () => {
       const res = await saveEvent({
         ...f, crew: [...crew],
@@ -84,21 +79,16 @@ export default function EventForm({ initial, members, inventory, presets: initia
         vendors,
       });
       if (res?.error && !res.id) return setError(res.error);
-      const synced = await syncCalendar(tokenPromise, res.id);
-      router.push(`/events/${res.id}?cal=${synced ? 1 : 0}`);
-      router.refresh();
+      await afterSave(res.id);
     });
   };
 
   const cancelEvent = () => {
     if (!f.id) return;
-    const tokenPromise = getToken(myEmail);
     start(async () => {
       const res = await deleteEvent(f.id);
       if (res?.error) return setError(res.error);
-      await syncCalendar(tokenPromise, f.id);
-      router.push('/events');
-      router.refresh();
+      await afterSave(f.id, '/events');
     });
   };
 
