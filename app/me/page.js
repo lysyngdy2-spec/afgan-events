@@ -1,6 +1,7 @@
 import Nav from '@/components/Nav';
 import { getMe } from '@/lib/session';
 import { revalidatePath } from 'next/cache';
+import CalendarLinks from '@/components/CalendarLinks';
 
 export const dynamic = 'force-dynamic';
 
@@ -11,9 +12,19 @@ async function savePhone(form) {
   revalidatePath('/me');
 }
 
+async function rotateToken() {
+  'use server';
+  const { supabase } = await getMe();
+  await supabase.rpc('rotate_calendar_token');
+  revalidatePath('/me');
+}
+
 export default async function Me() {
   const me = await getMe();
-  const { data: p } = await me.supabase.from('profiles').select('name, email, phone').eq('id', me.user.id).single();
+  const [{ data: p }, { data: token }] = await Promise.all([
+    me.supabase.from('profiles').select('name, email, phone').eq('id', me.user.id).single(),
+    me.supabase.rpc('my_calendar_token'),
+  ]);
   return (
     <>
       <main className="page">
@@ -24,8 +35,12 @@ export default async function Me() {
           <button className="btn">שמור</button>
         </form>
         <section className="glass card">
-          <h2 style={{ fontSize: 16 }}>יומן ותזכורות</h2>
-          <p className="small muted">חיבור לגוגל קלנדר ולאפל קלנדר, ותזכורות שבוע לפני, יום לפני וביום האירוע. נפתח בשלב הבא.</p>
+          <h2 style={{ fontSize: 16 }}>האירועים שלי ביומן</h2>
+          <p className="small muted">לוחצים פעם אחת, ומאז כל אירוע שמשבצים אותך אליו נכנס ליומן לבד, ומתעדכן אם משהו משתנה או מתבטל. באייפון זה מתעדכן כל שעה בערך, בגוגל לפעמים לוקח כמה שעות.</p>
+          {token ? <CalendarLinks token={token} /> : null}
+          <form action={rotateToken}>
+            <button className="btn ghost" style={{ width: '100%', fontSize: 13 }}>הקישור דלף? צור קישור חדש</button>
+          </form>
         </section>
         <form action="/auth/signout" method="post"><button className="btn ghost" style={{ width: '100%' }}>התנתקות</button></form>
       </main>
