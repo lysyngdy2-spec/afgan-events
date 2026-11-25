@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import AnswerButtons from '@/components/AnswerButtons';
-import { getMe } from '@/lib/session';
+import { getMe, getClient } from '@/lib/session';
 import { upcomingEvents, moneySummary, monthRange } from '@/lib/data';
 import { hm, shekel, dayName, shortDate, daysUntil, wazeUrl } from '@/lib/format';
 
@@ -12,15 +12,19 @@ function greeting() {
 }
 
 export default async function Home() {
+  // The events query does not depend on who you are (RLS decides), so it runs
+  // alongside the profile lookup instead of after it.
+  const supabase = await getClient();
+  const eventsP = upcomingEvents(supabase);
+  eventsP.catch(() => {});
   const me = await getMe();
-  const events = await upcomingEvents(me.supabase);
+  const moneyP = me.isAdmin ? moneySummary(supabase, ...monthRange()) : null;
+  const [events, money] = await Promise.all([eventsP, moneyP]);
   const mine = me.canEdit ? events : events.filter((e) => e.event_staff.some((s) => s.user_id === me.user.id));
   const myStatus = (e) => e.event_staff.find((s) => s.user_id === me.user.id)?.status;
   const next = me.canEdit ? events[0] : mine.find((e) => myStatus(e) !== 'declined');
   const firstName = me.profile.name.split(' ')[0];
 
-  let money = null;
-  if (me.isAdmin) money = await moneySummary(me.supabase, ...monthRange());
 
   const alerts = [];
   if (me.canEdit) {

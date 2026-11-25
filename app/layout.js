@@ -1,4 +1,5 @@
 import './globals.css';
+import AppRuntime from '@/components/AppRuntime';
 import { Rubik, Secular_One } from 'next/font/google';
 
 const body = Rubik({ subsets: ['hebrew', 'latin'], weight: ['400', '500', '700'], variable: '--font-body' });
@@ -15,7 +16,7 @@ export const viewport = { themeColor: '#08090B', width: 'device-width', initialS
 export default function RootLayout({ children }) {
   return (
     <html lang="he" dir="rtl" className={`${body.variable} ${display.variable}`}>
-      <body>{children}</body>
+      <body>{children}<AppRuntime /></body>
     </html>
   );
 }
