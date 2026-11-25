@@ -1,5 +1,5 @@
 'use client';
-import { useMemo, useState } from 'react';
+import { useDeferredValue, useMemo, useState } from 'react';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import EventForm from './EventForm';
@@ -15,9 +15,12 @@ export default function NewEventFlow({ inventory, members, presets, isAdmin, myE
   const [step, setStep] = useState('pick');
   const [hi, setHi] = useState(null);
   const set = setId ? setById(setId) : null;
+  // The slider stays instant; the drawing follows a frame later instead of blocking the thumb.
+  const figGuests = useDeferredValue(guests);
+  const figSlots = useMemo(() => (set ? set.slots(figGuests) : []), [set, figGuests]);
+  const figCounts = useMemo(() => sceneCounts(figSlots), [figSlots]);
 
   const slots = useMemo(() => (set ? set.slots(guests) : []), [set, guests]);
-  const counts = useMemo(() => sceneCounts(slots), [slots]);
   const alloc = useMemo(() => allocate(slots, inventory), [slots, inventory]);
   const initial = useMemo(() => {
     if (!set) return null;
@@ -51,7 +54,7 @@ export default function NewEventFlow({ inventory, members, presets, isAdmin, myE
       <div className="enter" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
         <button type="button" className="chip" style={{ alignSelf: 'flex-start' }} onClick={() => setStep('pick')}>→ כל הסטים</button>
         <EventFigure
-          setId={set.id} scene={set.scene} counts={counts} guests={guests} title={set.name}
+          setId={set.id} scene={set.scene} counts={figCounts} guests={figGuests} title={set.name}
           readout={`${guests} אורחים · ${speakers} רמקולים · ${lights} גופי תאורה`}
           highlight={hi} hint={hi ? 'מודגש: ' + (slots.find((s) => s.key === hi)?.label || '') : 'לחיצה על פריט מדגישה אותו'}
         />
@@ -102,7 +105,7 @@ export default function NewEventFlow({ inventory, members, presets, isAdmin, myE
             <span className="small muted">{s.blurb}</span>
           </button>
         ))}
-        <button type="button" onClick={() => setStep('form')} className="glass set-card" style={{ animationDelay: `${SETS.length * 40}ms` }}>
+        <button type="button" onClick={() => { setSetId(null); setStep('form'); }} className="glass set-card" style={{ animationDelay: `${SETS.length * 40}ms` }}>
           <SetGlyph id="blank" />
           <span style={{ fontWeight: 500, fontSize: 16 }}>אירוע ריק</span>
           <span className="small muted">ממלאים הכל ידנית</span>
