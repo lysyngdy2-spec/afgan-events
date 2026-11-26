@@ -16,7 +16,7 @@ body::before{content:"";position:fixed;inset:0;background:radial-gradient(70vmax
 a{color:var(--amber);text-decoration:none}
 h1,h2,h3,p{margin:0}
 .display{font-family:var(--font-body),sans-serif;font-weight:800;letter-spacing:-.01em}
-.page{position:relative;z-index:1;max-width:560px;margin:0 auto;padding:calc(22px + env(safe-area-inset-top)) 20px calc(120px + env(safe-area-inset-bottom));animation:enter .18s ease-out both;display:flex;flex-direction:column;gap:18px}
+.page{position:relative;z-index:1;max-width:560px;margin:0 auto;padding:calc(22px + env(safe-area-inset-top)) 20px calc(120px + env(safe-area-inset-bottom));animation:enter .24s cubic-bezier(.2,.8,.2,1) both;display:flex;flex-direction:column;gap:18px}
 .muted{color:var(--muted)}
 .small{font-size:13px}
 .glass{background:var(--surface);border:1px solid var(--line);border-radius:22px}
@@ -54,7 +54,7 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--amber);outline-o
 .stepper button{width:40px;height:40px;border-radius:20px;border:1px solid rgba(255,255,255,0.16);background:rgba(255,255,255,0.05);color:var(--text);font-size:20px;cursor:pointer}
 .pop{animation:pop .28s cubic-bezier(.2,.9,.3,1.2)}
 @keyframes pop{from{transform:scale(.96);opacity:.6}to{transform:none;opacity:1}}
-@keyframes enter{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+@keyframes enter{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 @keyframes lift{from{opacity:0;transform:translateY(10px)}}
 .sk{border-radius:20px;background:linear-gradient(90deg,rgba(255,255,255,0.05),rgba(255,255,255,0.1),rgba(255,255,255,0.05));background-size:200% 100%;animation:sk 1.1s linear infinite}
 @keyframes sk{to{background-position:-200% 0}}
@@ -363,10 +363,13 @@ a.srow:active{opacity:.6}
 @keyframes vt-in{from{opacity:0;transform:translateY(8px)}}
 .nav{view-transition-name:nav}
 ::view-transition-group(nav),::view-transition-old(nav),::view-transition-new(nav){animation:none}
+/* The bar is never frozen into a picture mid-move: only its live copy shows during a screen change. */
+::view-transition-old(nav){display:none}
+/* Taps keep working while a screen change plays (the bar stays live under the animation). */
+::view-transition{pointer-events:none}
 @media (prefers-reduced-motion:reduce){.set-stage .world,.set-stage .layer{transition:none}.set-stage .drop,.pin-dot::after,.fold-flat,.fold-obj{animation:none}.fold-flat{display:none}}
 .nav{transition:transform .38s cubic-bezier(.2,.85,.25,1),opacity .25s}
 .nav.away{transform:translate(-50%,140%);opacity:0;pointer-events:none}
-@supports (view-transition-name:none){.page{animation:none}}
 .cam-entry{padding:14px 16px;border-radius:20px;color:var(--text);font:inherit;border:1px solid rgba(255,255,255,0.12);cursor:pointer;width:100%}
 .cam-ico{width:44px;height:44px;border-radius:22px;background:var(--amber);color:var(--amber-ink);display:grid;place-items:center;flex-shrink:0}
 .set-stage .layer-tag{inset-inline-start:10px;transform:translateY(-50%)}
