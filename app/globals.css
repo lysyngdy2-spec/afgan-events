@@ -372,3 +372,6 @@ a.srow:active{opacity:.6}
 .set-stage .layer-tag{inset-inline-start:10px;transform:translateY(-50%)}
 .set-stage.exploded [data-layer="base"] [data-k="venue"]{opacity:.45}
 .set-stage.exploded .layer:not([data-layer="base"]){filter:drop-shadow(0 6px 4px rgba(0,0,0,0.45))}
+.drawer-add{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.manual-head{display:flex;align-items:center;gap:16px;padding-top:8px}
+.manual-head > div{display:flex;flex-direction:column;align-items:flex-start;gap:8px}

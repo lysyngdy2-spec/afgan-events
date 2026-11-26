@@ -130,7 +130,7 @@ export default function SetBuilder({ inventory, qty, setQty, bookedBy = {}, canA
             <div className="row"><div><h3 className="set-title">{ZONES[zone].name}</h3><p className="small muted">{ZONES[zone].hint}</p></div>
               <button type="button" className="chip" onClick={() => setZone(null)}>סיום</button></div>
             <div className="drawer-list">
-              {zoneRows.length === 0 && <p className="muted small" style={{ padding: '14px 0' }}>עוד אין במחסן ציוד מהסוג הזה. מצלמים אותו פעם אחת, ומאז הוא כאן.</p>}
+              {zoneRows.length === 0 && <p className="muted small" style={{ padding: '14px 0' }}>עוד אין במחסן ציוד מהסוג הזה. מצלמים או מוסיפים ידנית פעם אחת, ומאז הוא כאן.</p>}
               {zoneRows.map((r) => (
                 <div key={r.id} className="list-row">
                   <span className="gear-name">
@@ -143,10 +143,15 @@ export default function SetBuilder({ inventory, qty, setQty, bookedBy = {}, canA
                 </div>
               ))}
             </div>
-            {canAdd && <button type="button" className="btn ghost full" onClick={() => setAdding(true)}>צלם ציוד חדש</button>}
+            {canAdd && (
+              <div className="drawer-add">
+                <button type="button" className="btn accent" onClick={() => setAdding('camera')}>צלם ציוד</button>
+                <button type="button" className="btn ghost" onClick={() => setAdding('manual')}>הוסף ידנית</button>
+              </div>
+            )}
           </div>
         </div>, document.body)}
-      {adding && createPortal(<AddGear cats={ZONES[zone]?.cats} onClose={() => setAdding(false)} onAdded={(row) => { setAdding(false); onAdded?.(row); bump(row.id, 1); }} />, document.body)}
+      {adding && createPortal(<AddGear manual={adding === 'manual'} cats={ZONES[zone]?.cats} onClose={() => setAdding(false)} onAdded={(row) => { setAdding(false); onAdded?.(row); bump(row.id, 1); }} />, document.body)}
     </section>
   );
 }

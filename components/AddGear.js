@@ -4,6 +4,7 @@ import { addGear } from '@/app/actions';
 import { supabaseBrowser } from '@/lib/supabase-browser';
 import { GEAR_TYPES } from '@/lib/setMap';
 import GearObject from './GearObject';
+import catalog from '@/lib/catalog.json';
 
 const SIDE = 720;
 
@@ -29,7 +30,7 @@ async function toSquare(source, sw, sh) {
 
 // Add gear from a live photo: viewfinder -> the photo folds into an isometric object ->
 // name it, say what it is, how many -> into the warehouse.
-export default function AddGear({ cats, onClose, onAdded }) {
+export default function AddGear({ cats, onClose, onAdded, manual = false }) {
   const video = useRef(null);
   const file = useRef(null);
   const [stream, setStream] = useState(null);
@@ -37,6 +38,7 @@ export default function AddGear({ cats, onClose, onAdded }) {
   useEffect(() => { alive.current = true; return () => { alive.current = false; }; }, []);
   const [camErr, setCamErr] = useState('');
   const [shot, setShot] = useState(null); // { blob, tone, preview }
+  const [mode, setMode] = useState(manual ? 'manual' : 'camera');
   const [name, setName] = useState('');
   const [type, setType] = useState(() => GEAR_TYPES.find((t) => cats?.includes(t.category))?.id || 'top');
   const [qty, setQty] = useState(1);
@@ -51,7 +53,7 @@ export default function AddGear({ cats, onClose, onAdded }) {
       setStream(s);
     } catch { setCamErr('אין גישה למצלמה. אפשר לצלם דרך כפתור "צלם עם המצלמה".'); }
   };
-  useEffect(() => { if (!shot) start(); }, [shot]); // eslint-disable-line
+  useEffect(() => { if (!shot && mode === 'camera') start(); }, [shot, mode]); // eslint-disable-line
   useEffect(() => {
     if (!stream) return;
     if (video.current) { video.current.srcObject = stream; video.current.play().catch(() => {}); }
@@ -83,6 +85,13 @@ export default function AddGear({ cats, onClose, onAdded }) {
   };
 
   const t = GEAR_TYPES.find((x) => x.id === type);
+  // Suggestions from the catalog for the chosen kind, so typing a model is a tap.
+  const models = (() => {
+    const c = catalog.categories.find((x) => x.name === t.category);
+    if (!c) return [];
+    const g = c.groups?.find((x) => x.name === t.group);
+    return g ? g.items : c.groups ? c.groups.flatMap((x) => x.items) : c.items || [];
+  })();
   const ordered = [...GEAR_TYPES].sort((a, b) => (cats?.includes(b.category) ? 1 : 0) - (cats?.includes(a.category) ? 1 : 0));
 
   const save = async () => {
@@ -92,20 +101,23 @@ export default function AddGear({ cats, onClose, onAdded }) {
       const sb = supabaseBrowser();
       const { data: { user } } = await sb.auth.getUser();
       if (!user) throw new Error('צריך להתחבר מחדש');
-      const ext = shot.blob.type === 'image/webp' ? 'webp' : 'jpg';
-      const path = `${user.id}/${crypto.randomUUID()}.${ext}`;
-      const up = await sb.storage.from('equipment').upload(path, shot.blob, { contentType: shot.blob.type, cacheControl: '31536000' });
-      if (up.error) throw new Error(up.error.message);
-      const photo_url = sb.storage.from('equipment').getPublicUrl(path).data.publicUrl;
-      const res = await addGear({ name, category: t.category, group: t.group, quantity: qty, photo_url, tone: shot.tone });
+      let photo_url = null;
+      if (shot) {
+        const ext = shot.blob.type === 'image/webp' ? 'webp' : 'jpg';
+        const path = `${user.id}/${crypto.randomUUID()}.${ext}`;
+        const up = await sb.storage.from('equipment').upload(path, shot.blob, { contentType: shot.blob.type, cacheControl: '31536000' });
+        if (up.error) throw new Error(up.error.message);
+        photo_url = sb.storage.from('equipment').getPublicUrl(path).data.publicUrl;
+      }
+      const res = await addGear({ name, category: t.category, group: t.group, quantity: qty, photo_url, tone: shot?.tone });
       if (res.error) throw new Error(res.error);
       onAdded?.(res.row);
     } catch (e) { setErr(e.message || 'לא נשמר'); setBusy(false); }
   };
 
   return (
-    <div className="cam" role="dialog" aria-modal="true" aria-label="ציוד חדש מתמונה">
-      {!shot ? (
+    <div className="cam" role="dialog" aria-modal="true" aria-label="ציוד חדש">
+      {mode === 'camera' && !shot ? (
         <>
           <div className="cam-view">
             {stream ? <video ref={video} playsInline muted autoPlay /> : <div className="cam-empty">{camErr || 'פותח מצלמה…'}</div>}
@@ -113,7 +125,7 @@ export default function AddGear({ cats, onClose, onAdded }) {
             <p className="cam-tip">מרכזים את הציוד בריבוע, על רקע נקי</p>
           </div>
           <div className="cam-bar">
-            <button type="button" className="chip" onClick={onClose}>ביטול</button>
+            <button type="button" className="chip" onClick={manual ? () => { setStream(null); setMode('manual'); } : onClose}>{manual ? 'חזרה' : 'ביטול'}</button>
             <button type="button" className="shutter" aria-label="צלם" onClick={snap} disabled={!stream} />
             <button type="button" className="chip" onClick={() => file.current?.click()}>צלם עם המצלמה</button>
             <input ref={file} type="file" accept="image/*" capture="environment" hidden onChange={pick} />
@@ -121,11 +133,19 @@ export default function AddGear({ cats, onClose, onAdded }) {
         </>
       ) : (
         <form className="cam-form" onSubmit={(e) => { e.preventDefault(); if (!busy) save(); }}>
-          <div className="fold" aria-hidden="true">
-            <img src={shot.preview} alt="" className="fold-flat" />
-            <span className="fold-obj"><GearObject photo={shot.preview} tone={shot.tone} shape={t.shape} size={180} /></span>
-          </div>
-          <label>איך קוראים לו?<input autoFocus value={name} onChange={(e) => setName(e.target.value)} placeholder="למשל QSC K12 שחור" maxLength={80} /></label>
+          {shot ? (
+            <div className="fold" aria-hidden="true">
+              <img src={shot.preview} alt="" className="fold-flat" />
+              <span className="fold-obj"><GearObject photo={shot.preview} tone={shot.tone} shape={t.shape} size={180} /></span>
+            </div>
+          ) : (
+            <div className="manual-head">
+              <span className="fold-obj" key={type}><GearObject shape={t.shape} size={120} /></span>
+              <div><h2 className="set-title">ציוד חדש</h2><button type="button" className="chip" onClick={() => setMode('camera')}>הוסף תמונה</button></div>
+            </div>
+          )}
+          <label>איך קוראים לו?<input autoFocus value={name} onChange={(e) => setName(e.target.value)} placeholder="למשל QSC K12 שחור" maxLength={80} list="gear-models" /></label>
+          <datalist id="gear-models">{models.map((m) => <option key={m} value={m} />)}</datalist>
           <div className="small muted">מה זה? (כדי לדעת איפה הוא עומד על הבמה)</div>
           <div className="type-chips">
             {ordered.map((x) => <button key={x.id} type="button" className={`chip ${type === x.id ? 'on' : ''}`} onClick={() => setType(x.id)}>{x.label}</button>)}
@@ -135,7 +155,8 @@ export default function AddGear({ cats, onClose, onAdded }) {
           </div>
           {err && <p className="warn small" role="alert">{err}</p>}
           <div className="row" style={{ gap: 10 }}>
-            <button type="button" className="btn ghost" onClick={() => setShot(null)} disabled={busy}>צלם שוב</button>
+            {shot ? <button type="button" className="btn ghost" onClick={() => { setShot(null); setMode('camera'); }} disabled={busy}>צלם שוב</button>
+              : <button type="button" className="btn ghost" onClick={onClose} disabled={busy}>ביטול</button>}
             <button type="submit" className="btn accent" style={{ flex: 1 }} disabled={busy}>{busy ? 'שומר…' : 'הוסף למחסן'}</button>
           </div>
         </form>
