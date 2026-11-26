@@ -102,7 +102,7 @@ export default function Nav({ isAdmin }) {
   };
 
   // Full-screen forms have their own bottom bar.
-  if (path === '/events/new' || path.endsWith('/edit')) return null;
+  if (path === '/events/new' || path.endsWith('/edit') || path.startsWith('/presets/')) return null;
 
   const stretch = lift ? (dragging ? 'scale(1.16,1.1)' : 'scale(1.1,1.06)') : 'scale(1)';
   return (

@@ -132,24 +132,47 @@ export async function clashes(p) {
   return { staff: staff || [], booked: booked || [] };
 }
 
-// Saved specs ("decks")
-export async function savePreset(name, items) {
-  const { supabase, user, canEdit } = await getMe();
+// Presets ("תבניות"): built by Nir or an editor. Gear is stored by catalog model
+// (category + name), so a template can hold gear that isn't in the warehouse yet.
+const ICONS = ['sound', 'lights', 'mic', 'stage', 'party', 'wedding', 'talk', 'dj'];
+const hhmm = (t) => (/^\d{2}:\d{2}/.test(t || '') ? t.slice(0, 5) : null);
+export async function savePreset(p) {
+  const { supabase, user, canEdit, isAdmin } = await getMe();
   if (!canEdit) return { error: 'אין הרשאה' };
-  name = String(name || '').trim().slice(0, 60);
-  const clean = (items || []).filter((x) => x.quantity > 0).map((x) => ({ equipment_id: x.equipment_id, quantity: Number(x.quantity) }));
-  if (!name) return { error: 'צריך שם למפרט' };
-  if (!clean.length) return { error: 'המפרט ריק. הוסף ציוד קודם.' };
-  const { data, error } = await supabase.from('spec_presets')
-    .upsert({ name, items: clean, created_by: user.id, updated_at: new Date().toISOString() }, { onConflict: 'name' })
-    .select('id, name, items').single();
-  return error ? { error: error.message } : { preset: data };
+  const name = String(p?.name || '').trim().slice(0, 60);
+  const items = (p?.items || [])
+    .filter((x) => x && x.name && x.category && Number(x.quantity) > 0)
+    .map((x) => ({ category: String(x.category), name: String(x.name).slice(0, 120), quantity: Math.min(999, Math.round(Number(x.quantity))) }));
+  if (!name) return { error: 'צריך שם לתבנית' };
+  if (!items.length) return { error: 'התבנית ריקה. הוסף לפחות פריט ציוד אחד.' };
+  const row = {
+    name, items, icon: ICONS.includes(p.icon) ? p.icon : 'sound',
+    setup_time: hhmm(p.setup_time), start_time: hhmm(p.start_time), end_time: hhmm(p.end_time),
+    notes: String(p.notes || '').trim().slice(0, 1000) || null,
+    created_by: user.id, updated_at: new Date().toISOString(),
+  };
+  const q = p.id ? supabase.from('spec_presets').update(row).eq('id', p.id) : supabase.from('spec_presets').insert(row);
+  const { data, error } = await q.select('id, name, icon, items, setup_time, start_time, end_time, notes').single();
+  if (error) return { error: error.code === '23505' ? 'כבר יש תבנית בשם הזה' : error.message };
+  // Nir picks gear he owns: anything new in the template joins the warehouse, so events built
+  // from it get real items. Existing quantities are never lowered.
+  if (isAdmin) {
+    const { data: have } = await supabase.from('equipment').select('category, name');
+    const known = new Set((have || []).map((e) => `${e.category}|${e.name}`));
+    const add = items.filter((x) => !known.has(`${x.category}|${x.name}`));
+    if (add.length) await supabase.from('equipment').insert(add);
+  }
+  revalidatePath('/presets');
+  revalidatePath('/events/new');
+  return { preset: data };
 }
 
 export async function deletePreset(id) {
   const { supabase, canEdit } = await getMe();
   if (!canEdit) return { error: 'אין הרשאה' };
   const { error } = await supabase.from('spec_presets').delete().eq('id', id);
+  revalidatePath('/presets');
+  revalidatePath('/events/new');
   return error ? { error: error.message } : { ok: true };
 }
 

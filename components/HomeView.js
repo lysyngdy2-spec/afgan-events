@@ -2,7 +2,7 @@ import Link from 'next/link';
 import AnswerButtons from '@/components/AnswerButtons';
 import { hm, shekel, dayName, shortDate, dayCount, initial, wazeUrl } from '@/lib/format';
 
-const Plus = () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>;
+const Plus = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>;
 const ListIco = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><path d="M4 7h16M7 12h10M10 17h4" /></svg>;
 const CalIco = () => <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="17" rx="3" /><path d="M16 2v4M8 2v4M3 10h18" /></svg>;
 
@@ -62,7 +62,6 @@ export default function HomeView({ me, events, money, now = new Date() }) {
           <span className="avatar me" aria-hidden="true">{initial(firstName)}</span>
           <img src="/icons/logo-white.png" alt="Afgan Sound & Light" width="44" height="44" />
         </div>
-        <span className="stripe" aria-hidden="true"><span /><span /><span /></span>
 
         <div className="hero-copy">
           <p className="hero-label">שלום {firstName} · {dateLine}</p>
@@ -77,11 +76,8 @@ export default function HomeView({ me, events, money, now = new Date() }) {
           )}
         </div>
 
-        <div className="pills">
-          {me.canEdit && <Link className="btn" href="/events/new"><span className="ico"><Plus /></span>אירוע חדש</Link>}
-          {next && !me.canEdit && next.location && <a className="btn" href={wazeUrl(next.location)} target="_blank" rel="noreferrer">נווט בוויז</a>}
-          {next && <Link className="btn ghost" href={`/events/${next.id}`}>פרטים</Link>}
-        </div>
+        {me.canEdit && <Link className="btn cta-big" href="/events/new" data-cta="primary"><span className="ico"><Plus /></span>אירוע חדש</Link>}
+        {next && !me.canEdit && next.location && <a className="btn cta-big light" href={wazeUrl(next.location)} target="_blank" rel="noreferrer">נווט בוויז ל{next.location}</a>}
 
         {next && (
           <Link href={`/events/${next.id}`} className="summary" aria-label={`${next.title}: להגיע ב-${hm(next.setup_time || next.start_time)}`}>

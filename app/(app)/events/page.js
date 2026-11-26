@@ -23,9 +23,10 @@ export default async function Events({ searchParams }) {
           <h1 className="display" style={{ fontSize: 30 }}>אירועים</h1>
           <span style={{ display: 'flex', gap: 8 }}>
             <Link href={past ? '/events' : '/events?past=1'} className="btn ghost" style={{ height: 40, padding: '0 14px', fontSize: 14 }}>{past ? 'קרובים' : 'שעברו'}</Link>
-            {me.canEdit && <Link href="/events/new" className="btn" style={{ height: 40, padding: '0 16px', fontSize: 14 }}>+ חדש</Link>}
+            
           </span>
         </div>
+        {me.canEdit && <Link href="/events/new" className="btn cta-big" data-cta="primary"><span className="ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg></span>אירוע חדש</Link>}
         {Object.keys(byMonth).length === 0 && <p className="muted">אין אירועים להצגה.</p>}
         {Object.entries(byMonth).map(([month, list]) => (
           <section key={month} style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
