@@ -24,12 +24,15 @@ export default function EventForm({ initial, members, inventory, presets: initia
   const [presetMsg, setPresetMsg] = useState('');
   const [managing, setManaging] = useState(false);
   const loadPreset = (p) => {
-    const have = new Set(inventory.map((i) => i.id));
-    setQty(Object.fromEntries(p.items.filter((x) => have.has(x.equipment_id)).map((x) => [x.equipment_id, x.quantity])));
-    setPresetMsg(`נטען: ${p.name}`);
+    const by = new Map(inventory.map((i) => [`${i.category}|${i.name}`, i.id]));
+    const hits = p.items.filter((x) => by.has(`${x.category}|${x.name}`));
+    setQty(Object.fromEntries(hits.map((x) => [by.get(`${x.category}|${x.name}`), x.quantity])));
+    setPresetMsg(`נטען: ${p.name}${hits.length < p.items.length ? ` (${p.items.length - hits.length} פריטים לא במחסן)` : ''}`);
   };
   const keepPreset = async () => {
-    const res = await savePreset(presetName, Object.entries(qty).map(([equipment_id, quantity]) => ({ equipment_id, quantity })));
+    const by = new Map(inventory.map((i) => [i.id, i]));
+    const items = Object.entries(qty).filter(([id, n]) => n > 0 && by.has(id)).map(([id, quantity]) => ({ category: by.get(id).category, name: by.get(id).name, quantity }));
+    const res = await savePreset({ name: presetName, items, setup_time: f.setup_time, start_time: f.start_time, end_time: f.end_time, notes: f.notes });
     if (res.error) return setPresetMsg(res.error);
     setPresets((ps) => [...ps.filter((p) => p.id !== res.preset.id), res.preset].sort((a, b) => a.name.localeCompare(b.name, 'he')));
     setPresetName(''); setPresetMsg(`נשמר: ${res.preset.name}`);
@@ -132,7 +135,7 @@ export default function EventForm({ initial, members, inventory, presets: initia
         {inventory.length === 0 && <p className="small muted">המחסן עוד ריק. ממלאים אותו ב"ניהול", "ציוד".</p>}
         {presets.length > 0 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <div className="row"><span className="small muted">מפרטים שמורים: לחיצה טוענת את כל הציוד</span>
+            <div className="row"><span className="small muted">תבניות: לחיצה טוענת את כל הציוד</span>
               <button type="button" className="small" style={{ background: 'none', border: 0, color: 'var(--amber)', font: 'inherit', fontSize: 13, padding: '8px 0' }} onClick={() => setManaging((m) => !m)}>{managing ? 'סיום' : 'מחיקה'}</button></div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
               {presets.map((p) => (
@@ -158,8 +161,8 @@ export default function EventForm({ initial, members, inventory, presets: initia
         })}
         {chosen.length > 0 && (
           <div className="row" style={{ gap: 8 }}>
-            <input value={presetName} onChange={(e) => setPresetName(e.target.value)} placeholder="שם למפרט, למשל חתונה 300 איש" aria-label="שם למפרט" onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); keepPreset(); } }} />
-            <button type="button" className="btn ghost" style={{ flexShrink: 0 }} onClick={keepPreset}>שמור כמפרט</button>
+            <input value={presetName} onChange={(e) => setPresetName(e.target.value)} placeholder="שם לתבנית, למשל חתונה 300 איש" aria-label="שם לתבנית" onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); keepPreset(); } }} />
+            <button type="button" className="btn ghost" style={{ flexShrink: 0 }} onClick={keepPreset}>שמור כתבנית</button>
           </div>
         )}
         {presetMsg && <p className="small" style={{ color: 'var(--green)' }} role="status">{presetMsg}</p>}

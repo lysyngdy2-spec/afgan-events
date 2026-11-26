@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { requireAdmin } from '@/lib/session';
 
 const tiles = [
+  ['/presets', 'תבניות', 'אירועים מוכנים מראש: ציוד, שעות והערות'],
   ['/inventory', 'ציוד', 'מה יש במחסן וכמה'],
   ['/money', 'כספים', 'הכנסות, שכר, הוצאות ורווח'],
   ['/team', 'צוות', 'עובדים, תעריפים והרשאות'],

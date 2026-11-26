@@ -13,6 +13,13 @@ export default function AppRuntime() {
     if (path !== '/login' && path !== '/no-access') return;
     try { caches.delete('pages-v1'); } catch {}
   }, [path]);
+  // iOS Safari only paints :active (the press-down feedback on every button) when the
+  // page listens for touches. One passive listener turns it on everywhere.
+  useEffect(() => {
+    const noop = () => {};
+    document.addEventListener('touchstart', noop, { passive: true });
+    return () => document.removeEventListener('touchstart', noop);
+  }, []);
   useEffect(() => {
     if (!('serviceWorker' in navigator) || process.env.NODE_ENV !== 'production') return;
     const onMsg = (e) => { if (e.data?.type === 'fresh') router.refresh(); };
