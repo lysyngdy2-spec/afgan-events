@@ -21,7 +21,10 @@ export default async function Events({ searchParams }) {
       <main className="page">
         <div className="row">
           <h1 className="display" style={{ fontSize: 30 }}>אירועים</h1>
-          <Link href={past ? '/events' : '/events?past=1'} className="small">{past ? 'קרובים' : 'שעברו'}</Link>
+          <span style={{ display: 'flex', gap: 8 }}>
+            <Link href={past ? '/events' : '/events?past=1'} className="btn ghost" style={{ height: 40, padding: '0 14px', fontSize: 14 }}>{past ? 'קרובים' : 'שעברו'}</Link>
+            {me.canEdit && <Link href="/events/new" className="btn" style={{ height: 40, padding: '0 16px', fontSize: 14 }}>+ חדש</Link>}
+          </span>
         </div>
         {Object.keys(byMonth).length === 0 && <p className="muted">אין אירועים להצגה.</p>}
         {Object.entries(byMonth).map(([month, list]) => (
