@@ -68,7 +68,7 @@ export default function EventFigure({ setId, scene, counts, guests, title, reado
             <stop offset="0" stopColor="var(--iso-cyl-a)" /><stop offset=".55" stopColor="var(--iso-cyl-b)" /><stop offset="1" stopColor="var(--iso-cyl-c)" />
           </linearGradient>
           <linearGradient id="beamg" x1="0" x2="0" y1="0" y2="1">
-            <stop offset="0" stopColor="#FFD27A" stopOpacity=".55" /><stop offset="1" stopColor="#FFB020" stopOpacity="0" />
+            <stop offset="0" stopColor="#FFF3A0" stopOpacity=".55" /><stop offset="1" stopColor="#FEE844" stopOpacity="0" />
           </linearGradient>
         </defs>
         {groups.map((g, i) => <g key={i} data-k={g.k} className={highlight === g.k ? 'on' : undefined} dangerouslySetInnerHTML={{ __html: g.html }} />)}
