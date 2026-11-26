@@ -21,7 +21,7 @@ export default async function NewEvent({ searchParams }) {
         <span style={{ width: 34 }} />
       </div>
       {from
-        ? <EventForm {...data} isAdmin={me.isAdmin} myEmail={me.profile.email} />
+        ? <EventForm {...data} inventory={withGroups(data.inventory)} isAdmin={me.isAdmin} myEmail={me.profile.email} />
         : <NewEventFlow inventory={withGroups(data.inventory)} members={data.members} presets={data.presets} isAdmin={me.isAdmin} myEmail={me.profile.email} />}
     </main>
   );

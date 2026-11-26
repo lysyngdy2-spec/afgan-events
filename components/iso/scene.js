@@ -21,7 +21,7 @@ function rng(seed) {
   return () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296);
 }
 
-export function buildScene({ setId, scene, counts, guests }) {
+export function buildScene({ setId = '', scene, counts, guests = 0, fixed = false, compact = false }) {
   const out = []; // { d, cls, k, z } z = painter's key
   const lights = []; // moving heads: world position, for the live beams
   const bb = [Infinity, Infinity, -Infinity, -Infinity];
@@ -74,7 +74,8 @@ export function buildScene({ setId, scene, counts, guests }) {
   };
 
   const n = (key) => counts[key] || 0;
-  const W = 64, D = 70;
+  // compact: the set builder, a shorter room so the gear reads large on a phone.
+  const W = compact ? 60 : 64, D = compact ? 46 : 70;
   const big = !!scene.stageBig;
   const st = big ? { x0: 10, x1: 54, y0: 3, y1: 22, h: 4 } : { x0: 18, x1: 54, y0: 3, y1: 16, h: 3 };
 
@@ -148,6 +149,23 @@ export function buildScene({ setId, scene, counts, guests }) {
     }
   }
 
+  // No band: mics stand along the stage front, wedges face them from the lip.
+  if (!scene.band) {
+    const span = st.x1 - st.x0 - 16;
+    const mics = Math.min(6, n('vocal'));
+    for (let i = 0; i < mics; i++) {
+      const mx = st.x0 + 8 + (span * (i + 0.5)) / mics, my = st.y1 - 4;
+      add(`<path class="stand" d="${lineOf([P(mx, my, st.h), P(mx, my, st.h + 6)])}"/>`, '', 'vocal', mx + my);
+      dot(mx, my, st.h + 6.2, 0.55, 'mic', 'vocal', mx + my + 0.01);
+      dot(mx, my, st.h, 0.5, 'term', 'vocal', mx + my);
+    }
+    const w = scene.dj ? 0 : Math.min(6, n('wedges'));
+    for (let i = 0; i < w; i++) {
+      const wx = st.x0 + 6 + ((st.x1 - st.x0 - 14) * (i + 0.5)) / w;
+      box(wx, st.y1 - 1.6, st.h, 2.6, 1.4, 1.2, 'mid', 'wedges', { seams: 0 });
+    }
+  }
+
   // Podium with a gooseneck mic, for talks.
   if (scene.podium) {
     const px = st.x1 - 10, py = st.y1 - 5;
@@ -159,14 +177,14 @@ export function buildScene({ setId, scene, counts, guests }) {
 
   // Speakers: subs on the floor at both stage corners, tops stacked on them.
   // A line array hangs from a fly bar instead.
-  const lineArray = setId === 'show' && guests > 500;
+  const lineArray = scene.lineArray || (setId === 'show' && guests > 500);
   const perSide = (k) => Math.ceil(n(k) / 2);
   for (const side of [0, 1]) {
     const sx = side ? st.x1 + 1 : st.x0 - 6;
     const sy = st.y1 - 5;
     const subs = Math.min(4, perSide('subs'));
     for (let i = 0; i < subs; i++) box(sx, sy - i * 4.4, 0, 5, 4.2, 4.4, 'mid', 'subs', { seams: 1, grill: i === 0 });
-    const tops = Math.min(6, perSide('tops'));
+    const tops = Math.min(6, Math.ceil((n('tops') + n('array')) / 2));
     if (lineArray) {
       const hx = sx + 0.5, hy = sy + 0.5, topZ = st.h + wallH + 2;
       box(hx - 0.5, hy - 0.5, topZ, 5, 4, 0.6, 'hi', 'tops');
@@ -248,7 +266,7 @@ export function buildScene({ setId, scene, counts, guests }) {
 
   // Seating.
   const rand = rng(guests * 31 + setId.length);
-  const fohY = D - 12;
+  const fohY = D - (compact ? 9 : 12);
   if (scene.tables === 'round') {
     const tables = Math.ceil(guests / 10);
     const draw = Math.min(42, tables);
@@ -278,7 +296,7 @@ export function buildScene({ setId, scene, counts, guests }) {
   }
 
   // FOH: the sound desk at the back of the room, with a snake cable to the stage.
-  if (n('console') || n('desk')) {
+  if (n('console') || n('desk') || n('ldesk') || n('comms')) {
     const fx = W / 2 - 5, fy = fohY;
     box(fx, fy, 0, 10, 5, 3.6, 'mid', 'console', { seams: 1 });
     box(fx + 1, fy + 0.6, 3.6, 6, 3.6, 0.7, 'hi', 'console');
@@ -286,19 +304,44 @@ export function buildScene({ setId, scene, counts, guests }) {
     for (let i = 0; i < 10; i++) d += lineOf([P(fx + 1.5 + i * 0.55, fy + 1.4, 4.31), P(fx + 1.5 + i * 0.55, fy + 3.6, 4.31)]);
     add(`<path class="fader" d="${d}"/>`, '', 'console', fx + fy + 6);
     if (n('desk')) box(fx + 7.4, fy + 0.8, 3.6, 2.2, 3, 0.6, 'hi', 'desk');
+    if (n('ldesk')) { box(fx + 11, fy, 0, 7, 5, 3.6, 'mid', 'ldesk', { seams: 1 }); box(fx + 12, fy + 0.8, 3.6, 5, 3.2, 0.6, 'hi', 'ldesk'); }
+    if (n('comms')) { box(fx - 4, fy + 1, 0, 3, 3, 3.6, 'mid', 'comms'); add(`<path class="stand" d="${lineOf([P(fx - 2.5, fy + 2.5, 3.6), P(fx - 2.5, fy + 2.5, 7)])}"/>`, '', 'comms', fx + fy + 0.6); }
     wire([[fx + 5, fy, 0.1], [fx + 5, st.y1 + 1, 0.1], [st.x0 + 2, st.y1 + 1, 0.1]], 'console', -800);
   }
 
   // Power distro by the stage with its feed.
+  if (n('stagebox')) { box(st.x0 + 1, st.y0 + 1, st.h, 3, 2, 2.4, 'hi', 'stagebox', { seams: 1 }); }
   if (n('power')) {
     // In the back corner, behind the stage, with its feed running along the wall.
-    box(2, 2, 0, 3, 2, 3.4, 'mid', 'power', { seams: 1 });
-    wire([[5, 3, 0.1], [st.x0, 3, 0.1]], 'power', -799);
+    if (compact) {
+      box(W - 6, 2, 0, 3, 2, 3.4, 'mid', 'power', { seams: 1 });
+      wire([[W - 6, 3, 0.1], [st.x1, 3, 0.1]], 'power', -799);
+    } else {
+      box(2, 2, 0, 3, 2, 3.4, 'mid', 'power', { seams: 1 });
+      wire([[5, 3, 0.1], [st.x0, 3, 0.1]], 'power', -799);
+    }
   }
 
   out.sort((a, b) => a.z - b.z);
+  const tzTop = st.h + wallH + (big ? 6 : 4) + 2;
+  if (fixed) {
+    // A fixed frame around the stage and the sound desk, so adding gear never rescales the picture.
+    // The far corners of the floor may run off the card; that's fine.
+    const crop = [P(st.x0 - 7, st.y0 - 1, tzTop + 4), P(st.x1 + 6, st.y0 - 1, tzTop + 4), P(W, 0, 0), P(st.x0 - 10, fohY + 7, 0), P(W / 2 + 10, fohY + 7, 0), P(W - 2, st.y1, 0)];
+    bb[0] = Math.min(...crop.map((p) => p[0])); bb[1] = Math.min(...crop.map((p) => p[1]));
+    bb[2] = Math.max(...crop.map((p) => p[0])); bb[3] = Math.max(...crop.map((p) => p[1]));
+  }
+  // Tap targets on screen, in the same units as the viewBox.
+  const anchors = {
+    sound: proj(st.x0 - 3.5, st.y1 - 3, 10),
+    stage: proj((st.x0 + st.x1) / 2, st.y1 - 3, st.h + 3),
+    light: proj(st.x1 - 4, st.y1 - 1, tzTop),
+    video: proj(st.x0 + 9, st.y0 + 1, st.h + wallH * 0.75),
+    foh: proj(W / 2, fohY + 2, 4),
+    power: compact ? proj(W - 4.5, 3, 3.4) : proj(3.5, 3, 3.4),
+  };
   // Fit the viewBox to everything drawn (beams stay inside: they only fall toward the floor).
   const pad = 2;
   const viewBox = `${r1(bb[0] - pad)} ${r1(bb[1] - pad)} ${r1(bb[2] - bb[0] + pad * 2)} ${r1(bb[3] - bb[1] + pad * 2)}`;
-  return { parts: out, lights, viewBox, floor: { x0: st.x0 + 4, x1: st.x1 - 4, y0: dfY0, y1: dfY1 } };
+  return { parts: out, lights, viewBox, anchors, box: [bb[0] - pad, bb[1] - pad, bb[2] - bb[0] + pad * 2, bb[3] - bb[1] + pad * 2], floor: { x0: st.x0 + 4, x1: st.x1 - 4, y0: dfY0, y1: dfY1 } };
 }

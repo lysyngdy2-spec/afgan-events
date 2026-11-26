@@ -3,6 +3,7 @@ import { notFound, redirect } from 'next/navigation';
 import EventForm from '@/components/EventForm';
 import { getMe } from '@/lib/session';
 import { eventFormData } from '@/lib/eventFormData';
+import { withGroups } from '@/lib/catalogGroups';
 
 export const dynamic = 'force-dynamic';
 
@@ -19,7 +20,7 @@ export default async function EditEvent({ params }) {
         <h1 className="display" style={{ fontSize: 22 }}>עריכת אירוע</h1>
         <Link href={`/events/new?from=${id}`} className="small">שכפל</Link>
       </div>
-      <EventForm {...data} isAdmin={me.isAdmin} myEmail={me.profile.email} />
+      <EventForm {...data} inventory={withGroups(data.inventory)} isAdmin={me.isAdmin} myEmail={me.profile.email} />
     </main>
   );
 }

@@ -1,4 +1,4 @@
-import { Suspense } from 'react';
+import { Suspense, unstable_ViewTransition as ViewTransition } from 'react';
 import Nav from '@/components/Nav';
 import Onboarding from '@/components/OnboardingGate';
 import { getMe } from '@/lib/session';
@@ -18,7 +18,7 @@ async function NavWithRole() {
 export default function AppLayout({ children }) {
   return (
     <>
-      {children}
+      <ViewTransition>{children}</ViewTransition>
       <Suspense fallback={<nav className="nav" aria-hidden="true" />}>
         <NavWithRole />
       </Suspense>

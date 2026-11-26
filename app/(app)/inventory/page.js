@@ -1,4 +1,5 @@
 import InventoryPicker from '@/components/InventoryPicker';
+import GearCameraButton from '@/components/GearCameraButton';
 import { requireAdmin } from '@/lib/session';
 import catalog from '@/lib/catalog.json';
 
@@ -14,6 +15,7 @@ export default async function Inventory() {
           <h1 className="display" style={{ fontSize: 28 }}>מה יש לך במחסן?</h1>
           <p className="muted">לוחצים על קטגוריה, מסמנים מה יש וכמה. הדגמים כבר כאן, אין צורך להקליד.</p>
         </div>
+        <GearCameraButton sub="הדרך הכי מהירה: מצלמים כל פריט ונותנים לו שם" />
         <InventoryPicker catalog={catalog} owned={owned || []} />
       </main>
     </>

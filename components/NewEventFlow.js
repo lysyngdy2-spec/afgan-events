@@ -1,12 +1,14 @@
 'use client';
 import { useMemo, useState } from 'react';
+import { go } from '@/lib/vt';
 import Link from 'next/link';
 import EventForm from './EventForm';
 import PresetCard from './PresetCard';
 
 // Step 1: pick one of your own templates (or start blank). Step 2: the normal form, filled in.
 export default function NewEventFlow({ inventory, members, presets, isAdmin, myEmail }) {
-  const [picked, setPicked] = useState(undefined); // undefined = still choosing, null = blank
+  // undefined = still choosing, null = blank. No saved sets yet: straight to the stage.
+  const [picked, setPicked] = useState(presets.length ? undefined : null);
   const byModel = useMemo(() => new Map(inventory.map((i) => [`${i.category}|${i.name}`, i])), [inventory]);
 
   const initial = useMemo(() => {
@@ -23,13 +25,13 @@ export default function NewEventFlow({ inventory, members, presets, isAdmin, myE
     };
   }, [picked, byModel]);
 
-  const choose = (p) => { setPicked(p); window.scrollTo({ top: 0 }); };
+  const choose = (p) => go(() => { setPicked(p); window.scrollTo({ top: 0 }); });
 
   if (picked !== undefined) {
     return (
       <div className="enter" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-        <button type="button" className="from-preset" onClick={() => setPicked(undefined)}>
-          <span><b>{picked ? `מתבנית: ${picked.name}` : 'אירוע ריק'}</b><span className="small muted">{picked ? 'הציוד, השעות וההערות כבר מולאו. אפשר לשנות הכל.' : 'ממלאים הכל ידנית.'}</span></span>
+        <button type="button" className="from-preset" onClick={() => go(() => setPicked(undefined))}>
+          <span><b>{picked ? `מסט: ${picked.name}` : 'אירוע ריק'}</b><span className="small muted">{picked ? 'הציוד, השעות וההערות כבר מולאו. אפשר לשנות הכל.' : 'ממלאים הכל ידנית.'}</span></span>
           <span className="swap">החלף</span>
         </button>
         {initial?.missing?.length > 0 && (
@@ -44,19 +46,18 @@ export default function NewEventFlow({ inventory, members, presets, isAdmin, myE
     <div className="enter" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
       {presets.length > 0 ? (
         <>
-          <p className="muted">בחר תבנית, והציוד, השעות וההערות ימולאו לבד.</p>
+          <p className="muted">מתחילים מסט שמור, והבמה, השעות וההערות מוכנים. או בונים במה חדשה.</p>
           <div className="preset-grid">
             {presets.map((p) => <PresetCard key={p.id} p={p} onClick={() => choose(p)} />)}
           </div>
         </>
       ) : (
         <div className="empty-presets">
-          <b>עוד אין לך תבניות</b>
-          <p className="muted">תבנית היא אירוע מוכן מראש, למשל "חתונה 300 איש": הציוד, השעות וההערות. בונים פעם אחת בלחיצות, ומאז כל אירוע כזה נפתח מוכן.</p>
+          <b>עוד אין סטים שמורים</b>
+          <p className="muted">בונים במה לאירוע, ובסוף אפשר לשמור אותה כסט, למשל "חתונה 300 איש". מאז כל אירוע כזה נפתח מוכן.</p>
         </div>
       )}
-      <Link href="/presets/new?then=event" className="btn ghost full">+ בנה תבנית חדשה</Link>
-      <button type="button" className="btn ghost full" onClick={() => choose(null)}>התחל אירוע ריק</button>
+      <button type="button" className="btn accent full" onClick={() => choose(null)}>בנה במה חדשה</button>
       <Link href="/events?past=1" className="small" style={{ alignSelf: 'center', padding: 10 }}>או שכפל אירוע שכבר היה</Link>
     </div>
   );
