@@ -2,7 +2,10 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import CalendarButton from '@/components/CalendarButton';
 import AnswerButtons from '@/components/AnswerButtons';
-import { getMe } from '@/lib/session';
+import EventSetupFigure from '@/components/EventSetupFigure';
+import { withGroups } from '@/lib/catalogGroups';
+import { guessSet, countsFromEquipment } from '@/lib/eventSets';
+import { getMe, getClient } from '@/lib/session';
 import { hm, shekel, dayName, shortDate, daysUntil, wazeUrl } from '@/lib/format';
 
 export const dynamic = 'force-dynamic';
@@ -10,13 +13,18 @@ export const dynamic = 'force-dynamic';
 export default async function EventPage({ params, searchParams }) {
   const { id } = await params;
   const cal = (await searchParams).cal;
-  const me = await getMe();
-  const { data: e } = await me.supabase.from('events')
-    .select('*, event_staff(user_id, status, profiles(name, phone)), event_equipment(quantity, equipment(name, category))')
-    .eq('id', id).maybeSingle();
+  // All four lookups at once; RLS hides finance from non-admins, and we also only show it to admins.
+  const supabase = await getClient();
+  const [me, { data: e }, { data: vendors }, { data: finRow }] = await Promise.all([
+    getMe(),
+    supabase.from('events')
+      .select('*, event_staff(user_id, status, profiles(name, phone)), event_equipment(quantity, equipment(name, category))')
+      .eq('id', id).maybeSingle(),
+    supabase.rpc('event_vendor_info', { eid: id }),
+    supabase.from('event_finance').select('*').eq('event_id', id).maybeSingle(),
+  ]);
   if (!e) notFound();
-  const { data: vendors } = await me.supabase.rpc('event_vendor_info', { eid: id });
-  const fin = me.isAdmin ? (await me.supabase.from('event_finance').select('*').eq('event_id', id).maybeSingle()).data : null;
+  const fin = me.isAdmin ? finRow : null;
   const mine = e.event_staff.find((s) => s.user_id === me.user.id);
   const byCat = {};
   for (const x of e.event_equipment) (byCat[x.equipment.category] ||= []).push(x);
@@ -85,6 +93,11 @@ export default async function EventPage({ params, searchParams }) {
             </div>
           ))}
         </section>
+
+        {e.event_equipment.length > 0 && (
+          <EventSetupFigure setId={guessSet(e.title)} title={e.title}
+            counts={countsFromEquipment(withGroups(e.event_equipment.map((x) => ({ ...x.equipment, quantity: x.quantity }))))} />
+        )}
 
         {(e.notes || e.contact_name) && (
           <section className="glass card">

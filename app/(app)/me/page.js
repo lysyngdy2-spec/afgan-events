@@ -1,6 +1,8 @@
 import { getMe } from '@/lib/session';
 import { revalidatePath } from 'next/cache';
 import CalendarLinks from '@/components/CalendarLinks';
+import SignOutButton from '@/components/SignOutButton';
+import ReplayTour from '@/components/ReplayTour';
 
 export const dynamic = 'force-dynamic';
 
@@ -42,7 +44,8 @@ export default async function Me() {
             <button className="btn ghost" style={{ width: '100%', fontSize: 13 }}>הקישור דלף? צור קישור חדש</button>
           </form>
         </section>
-        <form action="/auth/signout" method="post"><button className="btn ghost" style={{ width: '100%' }}>התנתקות</button></form>
+        <ReplayTour />
+        <SignOutButton />
       </main>
     </>
   );

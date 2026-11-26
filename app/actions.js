@@ -45,26 +45,31 @@ export async function saveEvent(data) {
   const had = new Set((oldCrew || []).map((c) => c.user_id));
   const added = [...keep].filter((u) => !had.has(u)).map((u) => ({ event_id: id, user_id: u }));
   const eq = (data.equipment || []).filter((x) => x.quantity > 0).map((x) => ({ event_id: id, equipment_id: x.id, quantity: x.quantity }));
-  const results = await Promise.all([
-    gone.length ? supabase.from('event_staff').delete().eq('event_id', id).in('user_id', gone) : {},
-    added.length ? supabase.from('event_staff').insert(added) : {},
-    eq.length ? supabase.from('event_equipment').insert(eq) : {},
-  ]);
-  const failed = results.find((r) => r.error);
-  if (failed) return { error: 'האירוע נשמר, אבל הצוות או הציוד לא: ' + failed.error.message, id };
-
-  if (isAdmin) {
-    await supabase.from('event_finance').upsert({
-      event_id: id, price: Number(data.price || 0), payment_status: data.payment_status || 'unpaid',
-      client_name: clean(data.client_name), client_phone: clean(data.client_phone),
-    });
-    await supabase.from('event_vendors').delete().eq('event_id', id);
+  // Money and vendors don't depend on the crew/equipment writes, so all of it goes out together.
+  const adminWork = isAdmin ? (async () => {
     const vs = (data.vendors || []).filter((v) => v.name).map((v) => ({
       event_id: id, type: v.type || 'ספק', name: v.name, arrival_time: clean(v.arrival_time),
       cost: Number(v.cost || 0), paid_by: v.paid_by === 'client' ? 'client' : 'us', status: v.status === 'confirmed' ? 'confirmed' : 'pending',
     }));
-    if (vs.length) await supabase.from('event_vendors').insert(vs);
-  }
+    const [fin, del] = await Promise.all([
+      supabase.from('event_finance').upsert({
+        event_id: id, price: Number(data.price || 0), payment_status: data.payment_status || 'unpaid',
+        client_name: clean(data.client_name), client_phone: clean(data.client_phone),
+      }),
+      supabase.from('event_vendors').delete().eq('event_id', id),
+    ]);
+    const ins = !del.error && vs.length ? await supabase.from('event_vendors').insert(vs) : {};
+    return fin.error || del.error || ins.error ? { error: (fin.error || del.error || ins.error) } : {};
+  })() : {};
+  const results = await Promise.all([
+    gone.length ? supabase.from('event_staff').delete().eq('event_id', id).in('user_id', gone) : {},
+    added.length ? supabase.from('event_staff').insert(added) : {},
+    eq.length ? supabase.from('event_equipment').insert(eq) : {},
+    adminWork,
+  ]);
+  const failed = results.find((r) => r.error);
+  if (failed) return { error: 'האירוע נשמר, אבל חלק מהפרטים לא: ' + failed.error.message, id };
+
   revalidatePath('/');
   revalidatePath('/events');
   return { id };
