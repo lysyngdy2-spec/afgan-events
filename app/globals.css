@@ -9,7 +9,7 @@ body{font-family:var(--font-body),system-ui,sans-serif;min-height:100dvh;-webkit
 body::before{content:"";position:fixed;inset:0;background:radial-gradient(60vmax 60vmax at 0% 0%,rgba(255,160,20,0.13),transparent 70%);pointer-events:none;z-index:0}
 a{color:var(--amber);text-decoration:none}
 h1,h2,h3,p{margin:0}
-.display{font-family:var(--font-display),sans-serif;font-weight:400}
+.display{font-family:var(--font-body),sans-serif;font-weight:800;letter-spacing:-.01em}
 .page{position:relative;z-index:1;max-width:560px;margin:0 auto;padding:calc(22px + env(safe-area-inset-top)) 20px calc(120px + env(safe-area-inset-bottom));animation:enter .26s cubic-bezier(.2,.8,.2,1) both;display:flex;flex-direction:column;gap:18px}
 .muted{color:var(--muted)}
 .small{font-size:13px}
@@ -66,8 +66,8 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--amber);outline-o
   margin:0;position:relative;border-radius:24px;border:1px solid rgba(255,255,255,0.12);background:radial-gradient(120% 80% at 50% 30%,#14161A,#0B0C0E);padding:12px 12px 10px;display:flex;flex-direction:column;gap:4px;overflow:hidden}
 .iso-card svg{width:100%;height:auto;display:block}
 .iso-head,.iso-foot{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:12px;color:var(--muted)}
-.iso-fig{font-family:var(--font-display),sans-serif;letter-spacing:.02em}
-.iso-title{font-family:var(--font-display),sans-serif;color:var(--text);font-size:15px}
+.iso-fig{font-family:var(--font-body),sans-serif;font-weight:700;letter-spacing:.02em}
+.iso-title{font-family:var(--font-body),sans-serif;font-weight:800;color:var(--text);font-size:15px}
 .iso-read{color:var(--amber);font-weight:500;text-align:end}
 .iso-card path{stroke:var(--iso-line);stroke-width:.22;stroke-linejoin:round}
 .iso-card .lo.ft{fill:var(--iso-lo-t)}.iso-card .lo.fx{fill:var(--iso-lo-x)}.iso-card .lo.fy{fill:var(--iso-lo-y)}
@@ -187,7 +187,7 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--amber);outline-o
 .sc-money .m{padding:12px 10px;border-radius:16px;display:flex;flex-direction:column;gap:4px;animation:rise .5s both}
 .sc-money .m:nth-child(2){animation-delay:.15s}.sc-money .m:nth-child(3){animation-delay:.3s}
 @property --n{syntax:'<integer>';inherits:false;initial-value:0}
-.count{font-family:var(--font-display),sans-serif;font-size:19px;counter-reset:n var(--n);animation:count 1.8s .4s cubic-bezier(.2,.8,.2,1) both}
+.count{font-family:var(--font-body),sans-serif;font-weight:800;font-size:19px;counter-reset:n var(--n);animation:count 1.8s .4s cubic-bezier(.2,.8,.2,1) both}
 .count::after{content:'₪' counter(n)}
 .count.a{--to:42500}.count.b{--to:12800;color:var(--amber)}.count.c{--to:23900}
 @keyframes count{from{--n:0}to{--n:var(--to)}}

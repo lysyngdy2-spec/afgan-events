@@ -1,9 +1,9 @@
 import './globals.css';
 import AppRuntime from '@/components/AppRuntime';
-import { Rubik, Secular_One } from 'next/font/google';
+import { Rubik } from 'next/font/google';
 
-const body = Rubik({ subsets: ['hebrew', 'latin'], weight: ['400', '500', '700'], variable: '--font-body' });
-const display = Secular_One({ subsets: ['hebrew', 'latin'], weight: '400', variable: '--font-display' });
+// One family across the app: Rubik. Headings use its heavier weights instead of a second display face.
+const rubik = Rubik({ subsets: ['hebrew', 'latin'], weight: ['400', '500', '600', '700', '800'], variable: '--font-body' });
 
 export const metadata = {
   title: 'Afgan S&L',
@@ -15,7 +15,7 @@ export const viewport = { themeColor: '#08090B', width: 'device-width', initialS
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="he" dir="rtl" className={`${body.variable} ${display.variable}`}>
+    <html lang="he" dir="rtl" className={rubik.variable}>
       <body>{children}<AppRuntime /></body>
     </html>
   );
