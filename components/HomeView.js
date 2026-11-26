@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import FreshLink from '@/components/FreshLink';
 import AnswerButtons from '@/components/AnswerButtons';
 import { hm, shekel, dayName, shortDate, dayCount, initial, wazeUrl } from '@/lib/format';
 
@@ -80,21 +81,21 @@ export default function HomeView({ me, events, money, now = new Date() }) {
         {next && !me.canEdit && next.location && <a className="btn cta-big light" href={wazeUrl(next.location)} target="_blank" rel="noreferrer">נווט בוויז ל{next.location}</a>}
 
         {next && (
-          <Link prefetch href={`/events/${next.id}`} className="summary" aria-label={`${next.title}: להגיע ב-${hm(next.setup_time || next.start_time)}`}>
+          <FreshLink href={`/events/${next.id}`} className="summary" aria-label={`${next.title}: להגיע ב-${hm(next.setup_time || next.start_time)}`}>
             <span style={{ display: 'flex', gap: 22 }}>
               <span><span className="k">להגיע ב</span><br /><b className="v"><bdi>{hm(next.setup_time || next.start_time)}</bdi></b></span>
               <span><span className="k">{dayName(next.event_date)}</span><br /><b className="v r"><bdi>{hm(next.start_time)}–{hm(next.end_time)}</bdi></b></span>
             </span>
             <Crew staff={next.event_staff} />
-          </Link>
+          </FreshLink>
         )}
 
         {pendingMine.map((e) => (
           <div key={e.id} className="glass-amber card">
             <p className="small" style={{ color: 'var(--amber)', fontWeight: 500 }}>שובצת לאירוע חדש</p>
-            <Link prefetch href={`/events/${e.id}`} style={{ color: 'var(--text)', fontSize: 17, fontWeight: 500 }}>
+            <FreshLink href={`/events/${e.id}`} style={{ color: 'var(--text)', fontSize: 17, fontWeight: 500 }}>
               {e.title} · {dayName(e.event_date)} {shortDate(e.event_date)} · הקמה <bdi>{hm(e.setup_time || e.start_time)}</bdi>
-            </Link>
+            </FreshLink>
             <AnswerButtons eventId={e.id} status="pending" />
           </div>
         ))}

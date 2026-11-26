@@ -1,3 +1,4 @@
+import FreshLink from '@/components/FreshLink';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import CalendarButton from '@/components/CalendarButton';
@@ -37,7 +38,7 @@ export default async function EventPage({ params, searchParams }) {
         {me.canEdit && e.status !== 'cancelled' && !(cal === '1') && !e.google_event_id && <CalendarButton id={id} email={me.profile.email} />}
         <div className="row">
           <Link href="/events" className="small">→ כל האירועים</Link>
-          {me.canEdit && <Link href={`/events/${id}/edit`} prefetch className="btn ghost" style={{ height: 44 }}>עריכה</Link>}
+          {me.canEdit && <FreshLink href={`/events/${id}/edit`} className="btn ghost" style={{ height: 44 }}>עריכה</FreshLink>}
         </div>
 
         <div className="glass-amber card" style={{ padding: 20, gap: 12 }}>

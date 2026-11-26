@@ -5,13 +5,15 @@ import { upcomingEvents, moneySummary, monthRange } from '@/lib/data';
 export const dynamic = 'force-dynamic';
 
 export default async function Home() {
-  // The events query does not depend on who you are (RLS decides), so it runs
-  // alongside the profile lookup instead of after it.
+  // None of these queries depend on who you are (RLS decides what comes back; the money
+  // tables return nothing to a worker), so all of them run alongside the profile lookup
+  // instead of after it. On a cold open that saves a whole round of database waiting.
   const supabase = await getClient();
   const eventsP = upcomingEvents(supabase);
+  const moneyP = moneySummary(supabase, ...monthRange());
   eventsP.catch(() => {});
+  moneyP.catch(() => {});
   const me = await getMe();
-  const moneyP = me.isAdmin ? moneySummary(supabase, ...monthRange()) : null;
-  const [events, money] = await Promise.all([eventsP, moneyP]);
+  const [events, money] = await Promise.all([eventsP, me.isAdmin ? moneyP : null]);
   return <HomeView me={me} events={events} money={money} />;
 }
