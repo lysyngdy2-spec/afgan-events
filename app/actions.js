@@ -143,8 +143,8 @@ export async function savePreset(p) {
   const items = (p?.items || [])
     .filter((x) => x && x.name && x.category && Number(x.quantity) > 0)
     .map((x) => ({ category: String(x.category), name: String(x.name).slice(0, 120), quantity: Math.min(999, Math.round(Number(x.quantity))) }));
-  if (!name) return { error: 'צריך שם לתבנית' };
-  if (!items.length) return { error: 'התבנית ריקה. הוסף לפחות פריט ציוד אחד.' };
+  if (!name) return { error: 'צריך שם לסט' };
+  if (!items.length) return { error: 'הסט ריק. הוסף לפחות פריט ציוד אחד.' };
   const row = {
     name, items, icon: ICONS.includes(p.icon) ? p.icon : 'sound',
     setup_time: hhmm(p.setup_time), start_time: hhmm(p.start_time), end_time: hhmm(p.end_time),
@@ -153,7 +153,7 @@ export async function savePreset(p) {
   };
   const q = p.id ? supabase.from('spec_presets').update(row).eq('id', p.id) : supabase.from('spec_presets').insert(row);
   const { data, error } = await q.select('id, name, icon, items, setup_time, start_time, end_time, notes').single();
-  if (error) return { error: error.code === '23505' ? 'כבר יש תבנית בשם הזה' : error.message };
+  if (error) return { error: error.code === '23505' ? 'כבר יש סט בשם הזה' : error.message };
   // Nir picks gear he owns: anything new in the template joins the warehouse, so events built
   // from it get real items. Existing quantities are never lowered.
   if (isAdmin) {
@@ -225,4 +225,23 @@ export async function setPayment(eventId, payment_status) {
   const { supabase } = await requireAdmin();
   await supabase.from('event_finance').upsert({ event_id: eventId, payment_status }, { onConflict: 'event_id' });
   revalidatePath('/money');
+}
+
+// Gear from a photo: any member may add a new model to the warehouse.
+export async function addGear(g) {
+  const { supabase, user } = await getMe();
+  const name = String(g?.name || '').trim().slice(0, 80);
+  const category = String(g?.category || '').trim();
+  const quantity = Math.max(1, Math.min(999, Math.round(Number(g?.quantity) || 1)));
+  if (!name || !category) return { error: 'חסרים שם וסוג' };
+  const base = `${String(process.env.NEXT_PUBLIC_SUPABASE_URL).replace(/\/+$/, '')}/storage/v1/object/public/equipment/${user.id}/`;
+  const tail = typeof g.photo_url === 'string' && g.photo_url.startsWith(base) ? g.photo_url.slice(base.length) : '';
+  const photo_url = /^[0-9a-f-]{36}\.(webp|jpg)$/.test(tail) ? g.photo_url : null;
+  const tone = /^#[0-9a-fA-F]{6}$/.test(g?.tone || '') ? g.tone : null;
+  const { data, error } = await supabase.from('equipment')
+    .insert({ category, name, quantity, photo_url, tone, catalog_group: g.group || null, added_by: user.id })
+    .select('id, category, name, quantity, photo_url, tone, catalog_group').single();
+  if (error) return { error: error.code === '23505' ? 'הדגם הזה כבר במחסן' : error.message };
+  for (const path of ['/inventory', '/events/new', '/presets/new']) revalidatePath(path);
+  return { row: { ...data, group: data.catalog_group } };
 }

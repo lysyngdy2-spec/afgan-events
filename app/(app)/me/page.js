@@ -3,6 +3,7 @@ import { revalidatePath } from 'next/cache';
 import CalendarLinks from '@/components/CalendarLinks';
 import SignOutButton from '@/components/SignOutButton';
 import ReplayTour from '@/components/ReplayTour';
+import GearCameraButton from '@/components/GearCameraButton';
 
 export const dynamic = 'force-dynamic';
 
@@ -31,6 +32,7 @@ export default async function Me() {
       <main className="page">
         <h1 className="display" style={{ fontSize: 30 }}>{p.name}</h1>
         <p className="muted" dir="ltr" style={{ textAlign: 'end' }}>{p.email}</p>
+        <GearCameraButton />
         <form action={savePhone} className="glass card">
           <label>טלפון (כדי שהצוות יוכל להתקשר אליך)<input name="phone" type="tel" dir="ltr" defaultValue={p.phone || ''} /></label>
           <button className="btn">שמור</button>

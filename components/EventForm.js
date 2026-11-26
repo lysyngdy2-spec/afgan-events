@@ -3,10 +3,12 @@ import { useEffect, useMemo, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { saveEvent, clashes, savePreset, deletePreset, deleteEvent, calendarPayload, setGoogleEventId } from '@/app/actions';
 import { cachedToken, goAuthorize, syncEvent } from '@/lib/gcal';
+import SetBuilder from './SetBuilder';
 
 const VENDOR_TYPES = ['התקנת מסך לד', 'הקמת במה', 'טראסים ותלייה', 'השכרת ציוד הגברה', 'השכרת ציוד תאורה', 'גנרטור וחשמלאי', 'צלם / וידאו', 'DJ חיצוני', 'טכנאי נוסף', 'סבלים', 'הובלה / משאית', 'פירוטכניקה', 'אחר'];
 
-export default function EventForm({ initial, members, inventory, presets: initialPresets = [], isAdmin, myEmail }) {
+export default function EventForm({ initial, members, inventory: initialInventory, presets: initialPresets = [], isAdmin, myEmail }) {
+  const [inventory, setInventory] = useState(initialInventory);
   const router = useRouter();
   const [f, setF] = useState(() => ({
     id: initial?.id, title: initial?.title || '', event_date: initial?.event_date || '', setup_time: initial?.setup_time?.slice(0, 5) || '',
@@ -18,17 +20,9 @@ export default function EventForm({ initial, members, inventory, presets: initia
   const [crew, setCrew] = useState(() => new Set(initial?.crew || []));
   const [qty, setQty] = useState(() => Object.fromEntries((initial?.equipment || []).map((x) => [x.equipment_id, x.quantity])));
   const [vendors, setVendors] = useState(() => initial?.vendors || []);
-  const [cat, setCat] = useState(null);
   const [presets, setPresets] = useState(initialPresets);
   const [presetName, setPresetName] = useState('');
   const [presetMsg, setPresetMsg] = useState('');
-  const [managing, setManaging] = useState(false);
-  const loadPreset = (p) => {
-    const by = new Map(inventory.map((i) => [`${i.category}|${i.name}`, i.id]));
-    const hits = p.items.filter((x) => by.has(`${x.category}|${x.name}`));
-    setQty(Object.fromEntries(hits.map((x) => [by.get(`${x.category}|${x.name}`), x.quantity])));
-    setPresetMsg(`נטען: ${p.name}${hits.length < p.items.length ? ` (${p.items.length - hits.length} פריטים לא במחסן)` : ''}`);
-  };
   const keepPreset = async () => {
     const by = new Map(inventory.map((i) => [i.id, i]));
     const items = Object.entries(qty).filter(([id, n]) => n > 0 && by.has(id)).map(([id, quantity]) => ({ category: by.get(id).category, name: by.get(id).name, quantity }));
@@ -36,11 +30,6 @@ export default function EventForm({ initial, members, inventory, presets: initia
     if (res.error) return setPresetMsg(res.error);
     setPresets((ps) => [...ps.filter((p) => p.id !== res.preset.id), res.preset].sort((a, b) => a.name.localeCompare(b.name, 'he')));
     setPresetName(''); setPresetMsg(`נשמר: ${res.preset.name}`);
-  };
-  const dropPreset = async (p) => {
-    const res = await deletePreset(p.id);
-    if (res.error) return setPresetMsg(res.error);
-    setPresets((ps) => ps.filter((x) => x.id !== p.id));
   };
   const [clash, setClash] = useState({ staff: [], booked: [] });
   const [error, setError] = useState('');
@@ -54,7 +43,6 @@ export default function EventForm({ initial, members, inventory, presets: initia
 
   const clashBy = useMemo(() => Object.fromEntries(clash.staff.map((c) => [c.user_id, c.event_title])), [clash]);
   const bookedBy = useMemo(() => Object.fromEntries(clash.booked.map((b) => [b.equipment_id, Number(b.booked)])), [clash]);
-  const cats = useMemo(() => [...new Set(inventory.map((i) => i.category))], [inventory]);
   const chosen = inventory.filter((i) => qty[i.id] > 0);
   const short = chosen.filter((i) => qty[i.id] + (bookedBy[i.id] || 0) > i.quantity);
 
@@ -99,6 +87,18 @@ export default function EventForm({ initial, members, inventory, presets: initia
     <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       <label>שם האירוע<input required value={f.title} onChange={set('title')} placeholder="חתונה כהן" style={{ fontSize: 17 }} /></label>
 
+      <SetBuilder inventory={inventory} qty={qty} setQty={setQty} bookedBy={bookedBy} canAdd
+        onAdded={(row) => setInventory((inv) => [...inv, row])} />
+      {short.length > 0 && <p className="small warn">חלק מהציוד תפוס באירוע אחר באותן שעות. אפשר להשלים מספק השכרה.</p>}
+      {chosen.length > 0 && (
+        <div className="row" style={{ gap: 8 }}>
+          <input value={presetName} onChange={(e) => setPresetName(e.target.value)} placeholder="שמור את הסט, למשל חתונה 300 איש" aria-label="שם לסט" onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); keepPreset(); } }} />
+          <button type="button" className="btn ghost" style={{ flexShrink: 0 }} onClick={keepPreset}>שמור סט</button>
+        </div>
+      )}
+      {presetMsg && <p className="small" style={{ color: 'var(--green)' }} role="status">{presetMsg}</p>}
+
+
       <section className="glass card">
         <h2 style={{ fontSize: 16 }}>מתי ואיפה</h2>
         <label>תאריך<input type="date" required value={f.event_date} onChange={set('event_date')} /></label>
@@ -128,54 +128,6 @@ export default function EventForm({ initial, members, inventory, presets: initia
           <p key={id} className="small warn">{members.find((m) => m.id === id)?.name} כבר משובץ באותן שעות ל{clashBy[id]}</p>
         ))}
         {members.filter((m) => !crew.has(m.id) && clashBy[m.id]).length > 0 && <p className="small muted">באדום: תפוסים באותן שעות.</p>}
-      </section>
-
-      <section className="glass card">
-        <h2 style={{ fontSize: 16 }}>מפרט ציוד</h2>
-        {inventory.length === 0 && <p className="small muted">המחסן עוד ריק. ממלאים אותו ב"ניהול", "ציוד".</p>}
-        {presets.length > 0 && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <div className="row"><span className="small muted">תבניות: לחיצה טוענת את כל הציוד</span>
-              <button type="button" className="small" style={{ background: 'none', border: 0, color: 'var(--amber)', font: 'inherit', fontSize: 13, padding: '8px 0' }} onClick={() => setManaging((m) => !m)}>{managing ? 'סיום' : 'מחיקה'}</button></div>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-              {presets.map((p) => (
-                <button type="button" key={p.id} className={`chip ${managing ? 'clash' : ''}`} onClick={() => (managing ? dropPreset(p) : loadPreset(p))}>
-                  {managing ? '✕ ' : ''}{p.name} <span className="small" style={{ opacity: 0.7 }}>· {p.items.length}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-        {chosen.map((i) => {
-          const over = qty[i.id] + (bookedBy[i.id] || 0) > i.quantity;
-          return (
-            <div key={i.id} className="list-row" style={over ? { color: 'var(--red-text)' } : undefined}>
-              <span><bdi>{i.name}</bdi> <span className="small muted">{i.category}</span>{over && <span className="small"> · חסרים {qty[i.id] + (bookedBy[i.id] || 0) - i.quantity}</span>}</span>
-              <span className="stepper">
-                <button type="button" aria-label="הוסף" onClick={() => bump(i.id, 1)}>+</button>
-                <b style={{ minWidth: 20, textAlign: 'center' }}>{qty[i.id]}</b>
-                <button type="button" aria-label="הפחת" onClick={() => bump(i.id, -1)}>−</button>
-              </span>
-            </div>
-          );
-        })}
-        {chosen.length > 0 && (
-          <div className="row" style={{ gap: 8 }}>
-            <input value={presetName} onChange={(e) => setPresetName(e.target.value)} placeholder="שם לתבנית, למשל חתונה 300 איש" aria-label="שם לתבנית" onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); keepPreset(); } }} />
-            <button type="button" className="btn ghost" style={{ flexShrink: 0 }} onClick={keepPreset}>שמור כתבנית</button>
-          </div>
-        )}
-        {presetMsg && <p className="small" style={{ color: 'var(--green)' }} role="status">{presetMsg}</p>}
-        {short.length > 0 && <p className="small warn">חלק מהציוד תפוס באירוע אחר באותן שעות. אפשר להשלים מספק השכרה.</p>}
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-          {cats.map((c) => <button type="button" key={c} className={`chip ${cat === c ? 'on' : ''}`} onClick={() => setCat(cat === c ? null : c)}>{c}</button>)}
-        </div>
-        {cat && inventory.filter((i) => i.category === cat && !(qty[i.id] > 0)).map((i) => (
-          <div key={i.id} className="list-row">
-            <span><bdi>{i.name}</bdi> <span className="small muted">במחסן {i.quantity}{bookedBy[i.id] ? `, תפוס ${bookedBy[i.id]}` : ''}</span></span>
-            <button type="button" className="chip" onClick={() => bump(i.id, 1)}>הוסף</button>
-          </div>
-        ))}
       </section>
 
       {isAdmin && (

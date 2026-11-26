@@ -65,6 +65,7 @@ export default function Nav({ isAdmin }) {
     drag.current = { startX: e.clientX, moved: false, left: b.left, id: e.pointerId };
     setLift(true);
     setUnder(nearest(e.clientX));
+    router.prefetch(items[nearest(e.clientX)][0]);
   };
   const onMove = (e) => {
     const d = drag.current;
@@ -102,11 +103,11 @@ export default function Nav({ isAdmin }) {
   };
 
   // Full-screen forms have their own bottom bar.
-  if (path === '/events/new' || path.endsWith('/edit') || path.startsWith('/presets/')) return null;
+  const hidden = path === '/events/new' || path.endsWith('/edit') || path.startsWith('/presets/');
 
   const stretch = lift ? (dragging ? 'scale(1.16,1.1)' : 'scale(1.1,1.06)') : 'scale(1)';
   return (
-    <nav ref={bar} className={`nav${lift ? ' pressed' : ''}`} aria-label="ניווט ראשי"
+    <nav ref={bar} className={`nav${lift ? ' pressed' : ''}${hidden ? ' away' : ''}`} inert={hidden} aria-label="ניווט ראשי"
       onPointerDown={onDown} onPointerMove={onMove} onPointerUp={(e) => finish(e, false)} onPointerCancel={(e) => finish(e, true)}
       onContextMenu={(e) => e.preventDefault()}>
       {lens && (
@@ -114,7 +115,7 @@ export default function Nav({ isAdmin }) {
           style={{ width: lens.w, transform: `translateX(${lens.x}px) ${stretch}` }} />
       )}
       {items.map(([href, k, label], i) => (
-        <Link key={k} href={href} ref={(el) => (tabs.current[i] = el)} onClick={onClick(i)} draggable={false}
+        <Link key={k} href={href} prefetch ref={(el) => (tabs.current[i] = el)} onClick={onClick(i)} draggable={false}
           className={`${i === target ? 'on' : ''}${under === i ? ' under' : ''}`} aria-current={k === key ? 'page' : undefined}>
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{I[k]}</svg>
           {label}

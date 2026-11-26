@@ -4,7 +4,6 @@ import CalendarButton from '@/components/CalendarButton';
 import AnswerButtons from '@/components/AnswerButtons';
 import EventSetupFigure from '@/components/EventSetupFigure';
 import { withGroups } from '@/lib/catalogGroups';
-import { guessSet, countsFromEquipment } from '@/lib/eventSets';
 import { getMe, getClient } from '@/lib/session';
 import { hm, shekel, dayName, shortDate, daysUntil, wazeUrl } from '@/lib/format';
 
@@ -18,7 +17,7 @@ export default async function EventPage({ params, searchParams }) {
   const [me, { data: e }, { data: vendors }, { data: finRow }] = await Promise.all([
     getMe(),
     supabase.from('events')
-      .select('*, event_staff(user_id, status, profiles(name, phone)), event_equipment(quantity, equipment(name, category))')
+      .select('*, event_staff(user_id, status, profiles(name, phone)), event_equipment(quantity, equipment(id, name, category, catalog_group))')
       .eq('id', id).maybeSingle(),
     supabase.rpc('event_vendor_info', { eid: id }),
     supabase.from('event_finance').select('*').eq('event_id', id).maybeSingle(),
@@ -38,7 +37,7 @@ export default async function EventPage({ params, searchParams }) {
         {me.canEdit && e.status !== 'cancelled' && !(cal === '1') && !e.google_event_id && <CalendarButton id={id} email={me.profile.email} />}
         <div className="row">
           <Link href="/events" className="small">→ כל האירועים</Link>
-          {me.canEdit && <Link href={`/events/${id}/edit`} className="btn ghost" style={{ height: 44 }}>עריכה</Link>}
+          {me.canEdit && <Link href={`/events/${id}/edit`} prefetch className="btn ghost" style={{ height: 44 }}>עריכה</Link>}
         </div>
 
         <div className="glass-amber card" style={{ padding: 20, gap: 12 }}>
@@ -95,8 +94,7 @@ export default async function EventPage({ params, searchParams }) {
         </section>
 
         {e.event_equipment.length > 0 && (
-          <EventSetupFigure setId={guessSet(e.title)} title={e.title}
-            counts={countsFromEquipment(withGroups(e.event_equipment.map((x) => ({ ...x.equipment, quantity: x.quantity }))))} />
+          <EventSetupFigure items={withGroups(e.event_equipment.map((x) => ({ ...x.equipment, quantity: x.quantity })))} />
         )}
 
         {(e.notes || e.contact_name) && (
